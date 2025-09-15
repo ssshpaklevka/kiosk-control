@@ -8,7 +8,6 @@ export const ingredientsApi = {
   getProductIngredients: async (): Promise<ProductIngredient[]> => {
     try {
       const response = await apiClient.get("/product-ingridients");
-      console.log("API Response:", response.data);
       return Array.isArray(response.data)
         ? response.data
         : response.data?.data || response.data?.productIngredients || [];

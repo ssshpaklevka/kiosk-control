@@ -175,12 +175,6 @@ export const HeaderAdvertising = () => {
         file: selectedFile!,
       };
 
-      console.log("🚀 Начинаем загрузку файла баннера в шапке:", {
-        fileName: selectedFile?.name,
-        fileSize: selectedFile?.size,
-        fileType: selectedFile?.type,
-      });
-
       await createHeaderBanner.mutateAsync(bannerData);
 
       // Сброс формы

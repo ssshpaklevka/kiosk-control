@@ -15,7 +15,6 @@ interface AxiosError extends Error {
   };
 }
 
-// Хук для получения всех баннеров
 export const useGetBannersMain = () => {
   return useQuery<BannerMain[], Error>({
     queryKey: ["banner-main"],
@@ -23,7 +22,6 @@ export const useGetBannersMain = () => {
   });
 };
 
-// Хук для получения баннера по id
 export const useGetBannerMain = (id: number) => {
   return useQuery<BannerMain, Error>({
     queryKey: ["banner-main", id],
@@ -31,7 +29,6 @@ export const useGetBannerMain = (id: number) => {
   });
 };
 
-// Хук для создания баннера
 export const useCreateBanner = () => {
   const queryClient = useQueryClient();
 
@@ -52,7 +49,6 @@ export const useCreateBanner = () => {
   });
 };
 
-// Хук для обновления баннера
 export const useUpdateBannerMain = () => {
   const queryClient = useQueryClient();
 
@@ -76,7 +72,6 @@ export const useUpdateBannerMain = () => {
   });
 };
 
-// Хук для удаления баннера
 export const useDeleteBanner = () => {
   const queryClient = useQueryClient();
 

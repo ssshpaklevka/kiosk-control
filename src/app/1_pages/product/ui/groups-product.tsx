@@ -61,7 +61,6 @@ export const GroupsProduct = () => {
   const { mutate: deleteGroup } = useDeleteGroup();
   const { mutate: updateGroup } = useUpdateGroup();
   // Отладочная информация
-  console.log("Hook result:", { groups, isLoading, error });
 
   const filteredGroups = groups.filter((group) =>
     group.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -93,10 +92,10 @@ export const GroupsProduct = () => {
       const img = new window.Image();
       img.onload = () => {
         // Минимальное разрешение для качественного фото группы
-        if (img.width < 400 || img.height < 400) {
+        if (img.width < 500 || img.height < 500) {
           resolve({
             type: "dimensions",
-            message: `Изображение слишком маленькое: ${img.width}x${img.height}px. Минимум: 400x400px`,
+            message: `Изображение слишком маленькое: ${img.width}x${img.height}px. Минимум: 500x500px`,
           });
           return;
         }

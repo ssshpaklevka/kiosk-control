@@ -11,34 +11,23 @@ export const bannerLoyalityApi = {
   ): Promise<BannerMain> => {
     const formData = new FormData();
 
-    // Добавляем файл
     formData.append("file", bannerData.file);
 
-    // Добавляем остальные данные как строки (FormData требует строки)
     formData.append("name", bannerData.name);
     formData.append("seconds", bannerData.seconds.toString());
     formData.append("is_active", bannerData.is_active.toString());
 
-    // Добавляем store только если он есть
     if (bannerData.store && bannerData.store.length > 0) {
       bannerData.store.forEach((storeId, index) => {
         formData.append(`store[${index}]`, storeId);
       });
     }
 
-    console.log("🔄 Отправляем данные баннера:", {
-      name: bannerData.name,
-      seconds: bannerData.seconds,
-      is_active: bannerData.is_active,
-      store: bannerData.store,
-      hasFile: !!bannerData.file,
-    });
-
     const response = await apiClient.post("/banner-loyality", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
-      timeout: 60000, // Увеличиваем таймаут до 60 секунд для загрузки файлов
+      timeout: 60000,
     });
     return response.data;
   },
@@ -49,7 +38,6 @@ export const bannerLoyalityApi = {
   ): Promise<BannerMain> => {
     const formData = new FormData();
 
-    // Добавляем только те поля, которые были переданы
     if (bannerData.file) {
       formData.append("file", bannerData.file);
     }
@@ -70,8 +58,6 @@ export const bannerLoyalityApi = {
       bannerData.store.forEach((storeId, index) => {
         formData.append(`store[${index}]`, storeId);
       });
-      // Или альтернативный вариант:
-      // formData.append('store', JSON.stringify(bannerData.store));
     }
 
     const response = await apiClient.patch(`/banner-loyality/${id}`, formData);

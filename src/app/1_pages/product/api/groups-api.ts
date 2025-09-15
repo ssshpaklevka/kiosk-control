@@ -5,8 +5,6 @@ export const groupsApi = {
   getGroups: async () => {
     try {
       const response = await apiClient.get("/groups");
-      console.log("API Response:", response.data);
-      // Если API возвращает данные в обертке, извлекаем массив
       return Array.isArray(response.data)
         ? response.data
         : response.data?.data || response.data?.groups || [];
@@ -35,7 +33,6 @@ export const groupsApi = {
 
     formData.append("name", group.name);
 
-    // Добавляем изображение только если оно есть
     if (group.image) {
       formData.append("image", group.image);
     }

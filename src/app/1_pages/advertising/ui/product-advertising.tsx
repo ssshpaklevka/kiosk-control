@@ -164,19 +164,6 @@ export const ProductAdvertising = () => {
               </SelectGroup>
             </SelectContent>
           </Select>
-          {/* <MultiSelect
-            maxCount={4}
-            options={
-              products?.map((product) => ({
-                value: product.id.toString(),
-                label: product.name,
-              })) || []
-            }
-            value={[]}
-            onValueChange={(value) => {
-              console.log(value);
-            }}
-          /> */}
         </div>
 
         <div className="space-y-3">

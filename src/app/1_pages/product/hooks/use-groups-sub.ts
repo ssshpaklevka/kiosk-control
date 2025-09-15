@@ -7,7 +7,7 @@ export const useGetGroupsSub = (enabled: boolean = true) => {
   return useQuery<GroupSub[]>({
     queryKey: ["groups-sub"],
     queryFn: groupsSubApi.getGroupsSub,
-    placeholderData: [], // Используем placeholderData вместо initialData
+    placeholderData: [],
     enabled,
   });
 };

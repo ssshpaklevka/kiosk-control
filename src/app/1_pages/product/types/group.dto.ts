@@ -6,10 +6,10 @@ export interface Group {
 
 export interface CreateGroup {
   name: string;
-  image: File; // Изображение обязательно
+  image: File;
 }
 
 export interface UpdateGroup {
   name: string;
-  image?: File; // Изображение необязательно при обновлении
+  image?: File;
 }

@@ -5,11 +5,11 @@ export interface CreateProduct {
   image: File;
   description: string;
   variant: VARIANT_PRODUCT_ENUM;
-  groups: number[]; // Сервер ожидает числа
-  subGroups: number[]; // Сервер ожидает числа
-  extras: number[]; // Сервер ожидает числа
-  type: number[]; // Сервер ожидает числа
-  ingredients: number[]; // Сервер ожидает числа
+  groups: number[];
+  subGroups: number[];
+  extras: number[];
+  type: number[];
+  ingredients: number[];
   composition: string;
   fats: number;
   proteins: number;

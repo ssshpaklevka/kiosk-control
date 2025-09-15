@@ -64,7 +64,6 @@ export function AdminDashboard() {
             <div>
               {user && (
                 <div className="text-sm text-muted-foreground">
-                  <p>Магазин: {user.store.name}</p>
                   <p>Роль: {user.role}</p>
                 </div>
               )}

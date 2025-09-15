@@ -24,13 +24,10 @@ export const productsApi = {
     productData: CreateProduct
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<any> => {
-    // Создаем FormData для отправки файла
     const formData = new FormData();
 
-    // Добавляем файл
     formData.append("image", productData.image);
 
-    // Добавляем остальные данные
     formData.append("name", productData.name);
     formData.append("description", productData.description);
     formData.append("composition", productData.composition);
@@ -43,7 +40,7 @@ export const productsApi = {
     formData.append("groups", JSON.stringify(productData.groups));
     formData.append("subgroups", JSON.stringify(productData.subGroups));
     formData.append("extras", JSON.stringify(productData.extras));
-    formData.append("variant", productData.variant); // Отправляем как обычную строку без JSON.stringify
+    formData.append("variant", productData.variant);
     formData.append("type", JSON.stringify(productData.type));
     formData.append("ingredients", JSON.stringify(productData.ingredients));
     const response = await apiClient.post(`product-main`, formData, {
@@ -55,30 +52,17 @@ export const productsApi = {
   },
 
   updateProduct: async (productData: UpdateProduct, idProduct: number) => {
-    // Создаем FormData для отправки файла
     const formData = new FormData();
 
-    // Добавляем файл (если есть)
     if (productData.image) {
       formData.append("image", productData.image);
     }
 
-    // Добавляем остальные данные
     formData.append("name", productData.name);
     formData.append("description", productData.description);
     formData.append("price", productData.price.toString());
     formData.append("type", productData.type);
     formData.append("weight", productData.weight.toString());
-
-    console.log("🔄 Отправляем обновление продукта:", {
-      idProduct,
-      name: productData.name,
-      description: productData.description,
-      price: productData.price,
-      type: productData.type,
-      weight: productData.weight,
-      hasImage: !!productData.image,
-    });
 
     const response = await apiClient.post(
       `product-original/update-product/${idProduct}`,
@@ -107,7 +91,6 @@ export const productsApi = {
   getProductExtras: async (): Promise<ProductIngredient[]> => {
     try {
       const response = await apiClient.get("/product-extras");
-      console.log("API Response:", response.data);
       return Array.isArray(response.data)
         ? response.data
         : response.data?.data || response.data?.productExtras || [];
@@ -120,7 +103,6 @@ export const productsApi = {
   getProductType: async (): Promise<ProductType[]> => {
     try {
       const response = await apiClient.get("/product-type");
-      console.log("API Response:", response.data);
       return Array.isArray(response.data)
         ? response.data
         : response.data?.data || response.data?.productTypes || [];

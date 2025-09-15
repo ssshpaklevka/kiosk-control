@@ -42,7 +42,6 @@ export const IngredientsProduct = () => {
   const { mutate: deleteIngredient } = useDeleteProductIngredient();
   const { mutate: updateIngredient } = useUpdateProductIngredient();
   // Отладочная информация
-  console.log("Hook result:", { ingredients, isLoading, error });
 
   const filteredSubGroups = ingredients.filter((ingredient) =>
     ingredient.name.toLowerCase().includes(searchTerm.toLowerCase())

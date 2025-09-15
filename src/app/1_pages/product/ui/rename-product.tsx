@@ -110,10 +110,10 @@ export const RenameProduct = () => {
       const img = new window.Image();
       img.onload = () => {
         // Минимальное разрешение для качественного фото продукта
-        if (img.width < 400 || img.height < 400) {
+        if (img.width < 1200 || img.height < 900) {
           resolve({
             type: "dimensions",
-            message: `Изображение слишком маленькое: ${img.width}x${img.height}px. Минимум: 400x400px`,
+            message: `Изображение слишком маленькое: ${img.width}x${img.height}px. Минимум: 1200x900px`,
           });
           return;
         }
@@ -163,16 +163,6 @@ export const RenameProduct = () => {
     setProductType(value);
   };
   const handleUpdateProduct = () => {
-    console.log("🔄 Попытка обновления продукта:", {
-      selectedProduct,
-      productName: productName.trim(),
-      productDescription: productDescription.trim(),
-      productPrice,
-      productType,
-      productWeight,
-      hasFile: !!selectedFile,
-    });
-
     if (
       selectedProduct &&
       productName.trim() &&

@@ -1,18 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Edit2, Trash2, Search } from "lucide-react";
-import {
-  useCreateGroupSub,
-  useDeleteGroupSub,
-  useGetGroupsSub,
-  useUpdateGroupSub,
-} from "../hooks/use-groups-sub";
-import { CreateGroupSub } from "../types/groups-sub.dto";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +10,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Edit2, Plus, Search, Trash2 } from "lucide-react";
+import { useState } from "react";
+import {
+  useCreateGroupSub,
+  useDeleteGroupSub,
+  useGetGroupsSub,
+  useUpdateGroupSub,
+} from "../hooks/use-groups-sub";
+import { CreateGroupSub } from "../types/groups-sub.dto";
 
 export const SubgroupsProduct = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -38,10 +38,9 @@ export const SubgroupsProduct = () => {
   const { mutate: deleteGroupSub } = useDeleteGroupSub();
   const { mutate: updateGroupSub } = useUpdateGroupSub();
   // Отладочная информация
-  console.log("Hook result:", { subGroups, isLoading, error });
 
   const filteredSubGroups = subGroups.filter((group) =>
-    group.name.toLowerCase().includes(searchTerm.toLowerCase()),
+    group.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleCreateSubGroup = () => {

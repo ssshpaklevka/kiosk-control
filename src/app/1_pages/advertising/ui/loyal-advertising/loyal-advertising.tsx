@@ -177,12 +177,6 @@ export const LoyalAdvertising = () => {
         file: selectedFile!,
       };
 
-      console.log("🚀 Начинаем загрузку файла:", {
-        fileName: selectedFile?.name,
-        fileSize: selectedFile?.size,
-        fileType: selectedFile?.type,
-      });
-
       await createBanner.mutateAsync(bannerData);
 
       // Сброс формы

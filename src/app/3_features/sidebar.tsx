@@ -16,7 +16,8 @@ import {
   ShoppingCart,
   Tv,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useAuth } from "../providers/auth-provider";
 
 export type ActiveSection = "advertising" | "product" | "user";
 export type AdvertisingSubSection = "home" | "loyalty" | "product-ads";
@@ -42,6 +43,7 @@ export function AdminSidebar({
   activeSubSection,
   onSectionChange,
 }: AdminSidebarProps) {
+  const { user } = useAuth();
   const [isAdvertisingExpanded, setIsAdvertisingExpanded] = useState(
     activeSection === "advertising"
   );
@@ -49,25 +51,33 @@ export function AdminSidebar({
     activeSection === "product"
   );
 
-  const menuItems = [
-    {
-      id: "advertising" as const,
-      label: "Реклама",
-      icon: Tv,
-      hasSubItems: true,
-    },
-    {
-      id: "product" as const,
-      label: "Товар",
-      icon: ShoppingCart,
-      hasSubItems: true,
-    },
-    // {
-    //   id: "user" as const,
-    //   label: "Пользователи",
-    //   icon: User,
-    // },
-  ];
+  const getMenuItems = () => {
+    const allMenuItems = [
+      {
+        id: "advertising" as const,
+        label: "Реклама",
+        icon: Tv,
+        hasSubItems: true,
+        allowedRoles: ["admin", "manager"],
+      },
+      {
+        id: "product" as const,
+        label: "Товар",
+        icon: ShoppingCart,
+        hasSubItems: true,
+        allowedRoles: ["admin", "product"],
+      },
+    ];
+
+    return user
+      ? allMenuItems.filter(
+          (item) =>
+            item.allowedRoles.includes(user?.role) || user?.role === "admin"
+        )
+      : allMenuItems;
+  };
+
+  const menuItems = getMenuItems();
 
   const advertisingSubItems = [
     {
@@ -149,16 +159,27 @@ export function AdminSidebar({
     onSectionChange(section, subItemId);
   };
 
-  //   const { logout } = useAuth();
+  // Проверяем доступность текущего раздела при изменении пользователя
+  useEffect(() => {
+    if (user && menuItems.length > 0) {
+      const currentSectionAvailable = menuItems.some(
+        (item) => item.id === activeSection
+      );
 
-  //   const handleLogout = async () => {
-  //     try {
-  //       await logout();
-  //       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  //     } catch (error: any) {
-  //       toast.error("Ошибка при выходе", error);
-  //     }
-  //   };
+      if (!currentSectionAvailable) {
+        // Если текущий раздел недоступен, переключаемся на первый доступный
+        const firstAvailableSection = menuItems[0];
+        if (firstAvailableSection) {
+          if (firstAvailableSection.id === "advertising") {
+            onSectionChange("advertising", "home");
+          } else if (firstAvailableSection.id === "product") {
+            onSectionChange("product", "create");
+          }
+        }
+      }
+    }
+  }, [user, menuItems, activeSection, onSectionChange]);
+
   return (
     <div className="w-64 border-r bg-card flex flex-col items-center">
       <div className="p-6">
