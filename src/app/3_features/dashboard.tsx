@@ -63,8 +63,8 @@ export function AdminDashboard() {
           <div className="flex justify-between items-center mb-6">
             <div>
               {user && (
-                <div className="text-sm text-muted-foreground">
-                  <p>Роль: {user.role}</p>
+                <div>
+                  <p className="text-md font-medium">Роль: {user.role}</p>
                 </div>
               )}
             </div>
