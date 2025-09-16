@@ -215,6 +215,23 @@ export const TableHomeAdvertising = () => {
     setValidationError(null);
   };
 
+  const handleSecondsChange = (value: string) => {
+    const cleanValue = value.replace(/^0+/, "") || "0";
+    const numericValue = parseInt(cleanValue, 10);
+
+    if (!isNaN(numericValue) && numericValue >= 0) {
+      setEditingBanner({
+        ...editingBanner!,
+        seconds: numericValue,
+      });
+    } else if (cleanValue === "") {
+      setEditingBanner({
+        ...editingBanner!,
+        seconds: 0,
+      });
+    }
+  };
+
   const handleDeleteBanner = (id: number) => {
     deleteBanner(id);
   };
@@ -300,13 +317,16 @@ export const TableHomeAdvertising = () => {
                               <div className="flex flex-col gap-2">
                                 <Label>Новое время показа в секундах</Label>
                                 <Input
-                                  value={editingBanner.seconds}
-                                  onChange={(e) =>
-                                    setEditingBanner({
-                                      ...editingBanner,
-                                      seconds: Number(e.target.value),
-                                    })
+                                  type="number"
+                                  value={
+                                    editingBanner.seconds === 0
+                                      ? ""
+                                      : editingBanner.seconds.toString()
                                   }
+                                  onChange={(e) =>
+                                    handleSecondsChange(e.target.value)
+                                  }
+                                  placeholder="Введите количество секунд"
                                 />
                               </div>
                               <div className="flex flex-col gap-2">

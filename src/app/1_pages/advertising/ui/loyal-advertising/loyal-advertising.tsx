@@ -143,6 +143,23 @@ export const LoyalAdvertising = () => {
     fileInputRef.current?.click();
   };
 
+  const handleSecondsChange = (value: string) => {
+    const cleanValue = value.replace(/^0+/, "") || "0";
+    const numericValue = parseInt(cleanValue, 10);
+
+    if (!isNaN(numericValue) && numericValue >= 0) {
+      setFormData((prev) => ({
+        ...prev,
+        seconds: numericValue,
+      }));
+    } else if (cleanValue === "") {
+      setFormData((prev) => ({
+        ...prev,
+        seconds: 0,
+      }));
+    }
+  };
+
   // Функция валидации формы
   const validateForm = (): boolean => {
     if (!selectedFile || !isValidFile) {
@@ -297,13 +314,10 @@ export const LoyalAdvertising = () => {
               <Input
                 type="number"
                 placeholder="Время показа в секундах"
-                value={formData.seconds || ""}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    seconds: Number(e.target.value) || 5,
-                  }))
+                value={
+                  formData.seconds === 0 ? "" : formData.seconds.toString()
                 }
+                onChange={(e) => handleSecondsChange(e.target.value)}
               />
             </div>
 
