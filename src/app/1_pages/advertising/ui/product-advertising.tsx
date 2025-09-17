@@ -133,7 +133,7 @@ export const ProductAdvertising = () => {
         <div
           className="w-96 h-164 bg-accent bg-no-repeat bg-center bg-cover rounded-2xl"
           style={{
-            backgroundImage: "url(/foodcrod-admin/terminal/header.webp)",
+            backgroundImage: "url(/terminal/header.webp)",
           }}
         >
           <div className="w-full flex rounded-3xl">

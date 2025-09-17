@@ -321,8 +321,7 @@ export const GroupsProduct = () => {
                   <div
                     className="w-96 h-82 bg-accent bg-no-repeat bg-center bg-cover rounded-2xl"
                     style={{
-                      backgroundImage:
-                        "url(/foodcrod-admin/terminal/header.webp)",
+                      backgroundImage: "url(/terminal/header.webp)",
                     }}
                   >
                     <div className="w-full flex rounded-3xl">
@@ -335,9 +334,6 @@ export const GroupsProduct = () => {
                         className="w-[58px] h-[58px] ml-[32px] mt-[153px] bg-red-600 rounded-2xl bg-cover bg-center bg-no-repeat"
                       ></div>
                     </div>
-                    {/* <div className="w-full flex justify-center rounded-3xl pt-10">
-                                <div className="bg-white w-[334px] h-[32px] rounded-3xl">инпут</div>
-                            </div> */}
                   </div>
                 </div>
               </div>
