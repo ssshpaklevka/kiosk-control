@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { AlertCircle, CheckCircle, Upload } from "lucide-react";
 import { useRef, useState } from "react";
@@ -18,7 +17,7 @@ export const CategoryAdvertising = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateFile = async (
-    file: File,
+    file: File
   ): Promise<FileValidationError | null> => {
     // Проверка формата
     const allowedTypes = ["image/webp", "video/webm"];
@@ -85,7 +84,7 @@ export const CategoryAdvertising = () => {
   };
 
   const handleFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>,
+    event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
     setValidationError(null);

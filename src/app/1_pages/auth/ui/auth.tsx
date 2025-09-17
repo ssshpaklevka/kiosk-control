@@ -1,18 +1,16 @@
 "use client";
+import { useAuth } from "@/app/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { useLogin } from "../hooks/use-auth";
-import { useAuth } from "@/app/providers/auth-provider";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useLogin } from "../hooks/use-auth";
 
 export const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const loginMutation = useLogin();
   const { login } = useAuth();
-  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,8 +30,8 @@ export const Auth = () => {
           sessionId: response.sessionId,
         });
       }
-    } catch (error) {
-      // Ошибка уже обработана в хуке
+    } catch {
+      return <></>;
     }
   };
   return (

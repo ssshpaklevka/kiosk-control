@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { authApi } from "../api/auth-api";
 import { LoginDto } from "../types/auth";
-import { toast } from "sonner";
 
 export const useLogin = () => {
   return useMutation({
@@ -27,8 +27,8 @@ export const useLogin = () => {
       }
     },
     onError: (error: Error) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const message =
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (error as any).response?.data?.message || "Неверный логин или пароль";
       toast.error(message);
     },
