@@ -222,7 +222,7 @@ export const HomeAdvertising = () => {
             style={{
               backgroundImage: previewUrl
                 ? `url(${previewUrl})`
-                : "url(/terminal/home.webp)",
+                : "url(/terminal-admin/terminal/home.webp)",
             }}
             className="w-96 h-164 bg-accent bg-no-repeat bg-center bg-cover"
           ></Card>
