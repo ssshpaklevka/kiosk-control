@@ -30,9 +30,9 @@ export const RenameProduct = () => {
   const [selectedProduct, setSelectedProduct] = useState<string>("");
   const [productName, setProductName] = useState<string>("");
   const [productDescription, setProductDescription] = useState<string>("");
-  const [productPrice, setProductPrice] = useState<number>(0);
+  const [productPrice, setProductPrice] = useState<string>("");
   const [productType, setProductType] = useState<string>("");
-  const [productWeight, setProductWeight] = useState<number>(0);
+  const [productWeight, setProductWeight] = useState<string>("");
   // State для работы с файлами
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [validationError, setValidationError] =
@@ -73,8 +73,8 @@ export const RenameProduct = () => {
       setSelectedProduct("");
       setProductName("");
       setProductDescription("");
-      setProductPrice(0);
-      setProductWeight(0);
+      setProductPrice("");
+      setProductWeight("");
       setProductType("");
       setSelectedFile(null);
       setPreviewUrl(null);
@@ -163,27 +163,34 @@ export const RenameProduct = () => {
     setProductType(value);
   };
   const handleUpdateProduct = () => {
+    const price = parseFloat(productPrice);
+    const weight = parseFloat(productWeight);
+
     if (
       selectedProduct &&
       productName.trim() &&
       productDescription.trim() &&
-      productPrice &&
+      productPrice.trim() &&
+      !isNaN(price) &&
+      price > 0 &&
       productType &&
-      productWeight
+      productWeight.trim() &&
+      !isNaN(weight) &&
+      weight > 0
     ) {
       updateProduct.mutate({
         idProduct: Number(selectedProduct),
         productData: {
           name: productName,
           description: productDescription,
-          price: productPrice,
+          price: price,
           image: selectedFile || undefined, // Файл необязательный
           type: productType,
-          weight: productWeight,
+          weight: weight,
         },
       });
     } else {
-      console.log("❌ Не все поля заполнены");
+      console.log("❌ Не все поля заполнены или введены некорректные значения");
     }
   };
 
@@ -287,16 +294,17 @@ export const RenameProduct = () => {
             <p>Введите новую цену продукта</p>
             <Input
               type="number"
+              step="0.01"
+              min="0"
               disabled={!selectedProduct}
               placeholder={
                 selectedProduct
-                  ? "Введите новую цену продукта"
+                  ? "Введите новую цену продукта (например: 199.99)"
                   : "Сначала выберите продукт"
               }
-              value={productPrice === 0 ? "" : productPrice}
+              value={productPrice}
               onChange={(e) => {
-                const value = e.target.value;
-                setProductPrice(value === "" ? 0 : Number(value));
+                setProductPrice(e.target.value);
               }}
             />
           </div>
@@ -324,16 +332,17 @@ export const RenameProduct = () => {
             <p>Введите новую массу продукта</p>
             <Input
               type="number"
+              step="0.01"
+              min="0"
               disabled={!selectedProduct}
               placeholder={
                 selectedProduct
-                  ? "Введите новую массу продукта"
+                  ? "Введите новую массу продукта (например: 250.5)"
                   : "Сначала выберите продукт"
               }
-              value={productWeight === 0 ? "" : productWeight}
+              value={productWeight}
               onChange={(e) => {
-                const value = e.target.value;
-                setProductWeight(value === "" ? 0 : Number(value));
+                setProductWeight(e.target.value);
               }}
             />
           </div>
@@ -350,8 +359,12 @@ export const RenameProduct = () => {
               !selectedProduct ||
               !productName.trim() ||
               !productDescription.trim() ||
-              !productPrice ||
-              !productWeight ||
+              !productPrice.trim() ||
+              isNaN(parseFloat(productPrice)) ||
+              parseFloat(productPrice) <= 0 ||
+              !productWeight.trim() ||
+              isNaN(parseFloat(productWeight)) ||
+              parseFloat(productWeight) <= 0 ||
               !productType ||
               updateProduct.isPending
             }
