@@ -30,6 +30,7 @@ export const bannerTvApi = {
     formData.append("name", bannerData.name);
     formData.append("seconds", bannerData.seconds.toString());
     formData.append("is_active", bannerData.is_active.toString());
+    formData.append("tv_number", bannerData.tv_number.toString());
 
     if (bannerData.store && bannerData.store.length > 0) {
       bannerData.store.forEach((storeId, index) => {

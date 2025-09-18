@@ -40,7 +40,7 @@ export const TvAdvertising = () => {
     seconds: 5,
     store: [], // Можно оставить пустым массивом или убрать совсем
     is_active: true,
-    tv_number: 0,
+    tv_number: 1, // По умолчанию ТВ 1
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,7 +59,7 @@ export const TvAdvertising = () => {
   const validateFile = async (
     file: File
   ): Promise<FileValidationError | null> => {
-    // Проверка формата
+    // Проверяем только формат файла
     const allowedTypes = ["image/webp", "video/webm"];
     if (!allowedTypes.includes(file.type)) {
       return {
@@ -68,59 +68,74 @@ export const TvAdvertising = () => {
       };
     }
 
-    // Для изображений проверяем размеры и DPI
+    return null;
+  };
+
+  // Проверка размеров файла в зависимости от выбранного ТВ
+  const validateFileDimensions = async (
+    file: File,
+    tvNumber: number
+  ): Promise<boolean> => {
+    let requiredWidth: number;
+    const requiredHeight: number = 2160;
+
+    if (tvNumber === 1) {
+      // ТВ 1
+      requiredWidth = 3840;
+    } else if (tvNumber === 2) {
+      // ТВ 2
+      requiredWidth = 2184;
+    } else {
+      toast.error("Выберите номер ТВ");
+      return false;
+    }
+
     if (file.type === "image/webp") {
       return new Promise((resolve) => {
         const img = new Image();
         img.onload = () => {
-          // Проверка размеров
-          if (img.width !== 2160 || img.height !== 3840) {
-            resolve({
-              type: "dimensions",
-              message: `Неверные размеры: ${img.width}x${img.height}px. Требуется: 2160x3840px`,
-            });
+          if (img.width !== requiredWidth || img.height !== requiredHeight) {
+            toast.error(
+              `Неверные размеры: ${img.width}x${img.height}px. Требуется: ${requiredWidth}x${requiredHeight}px для ТВ ${tvNumber}`
+            );
+            resolve(false);
             return;
           }
-
-          // Примерная проверка DPI (для веб-изображений это сложно точно определить)
-          // В данном случае будем считать, что если размеры правильные, то DPI скорее всего тоже 72
-          resolve(null);
+          resolve(true);
         };
         img.onerror = () => {
-          resolve({
-            type: "format",
-            message: "Ошибка загрузки изображения",
-          });
+          toast.error("Ошибка загрузки изображения");
+          resolve(false);
         };
         img.src = URL.createObjectURL(file);
       });
     }
 
-    // Для видео проверяем базовые параметры
     if (file.type === "video/webm") {
       return new Promise((resolve) => {
         const video = document.createElement("video");
         video.onloadedmetadata = () => {
-          if (video.videoWidth !== 2160 || video.videoHeight !== 3840) {
-            resolve({
-              type: "dimensions",
-              message: `Неверные размеры видео: ${video.videoWidth}x${video.videoHeight}px. Требуется: 2160x3840px`,
-            });
+          if (
+            video.videoWidth !== requiredWidth ||
+            video.videoHeight !== requiredHeight
+          ) {
+            toast.error(
+              `Неверные размеры видео: ${video.videoWidth}x${video.videoHeight}px. Требуется: ${requiredWidth}x${requiredHeight}px для ТВ ${tvNumber}`
+            );
+            resolve(false);
             return;
           }
-          resolve(null);
+          resolve(true);
         };
         video.onerror = () => {
-          resolve({
-            type: "format",
-            message: "Ошибка загрузки видео",
-          });
+          toast.error("Ошибка загрузки видео");
+          resolve(false);
         };
         video.src = URL.createObjectURL(file);
       });
     }
 
-    return null;
+    return true;
   };
 
   const handleFileChange = async (
@@ -171,9 +186,9 @@ export const TvAdvertising = () => {
   };
 
   // Функция валидации формы
-  const validateForm = (): boolean => {
-    if (!selectedFile || !isValidFile) {
-      toast.error("Необходимо загрузить корректный файл");
+  const validateForm = async (): Promise<boolean> => {
+    if (!selectedFile) {
+      toast.error("Необходимо загрузить файл");
       return false;
     }
 
@@ -187,19 +202,27 @@ export const TvAdvertising = () => {
       return false;
     }
 
-    if (formData.tv_number >= 2 || formData.tv_number < 0) {
-      toast.error("Номер ТВ не может быть больше 2 или меньше 0");
+    if (formData.tv_number > 2 || formData.tv_number < 1) {
+      toast.error("Номер ТВ должен быть 1 или 2");
       return false;
     }
 
-    // Убрали проверку store - теперь это поле необязательное
+    // Проверяем размеры файла
+    const isDimensionsValid = await validateFileDimensions(
+      selectedFile,
+      formData.tv_number
+    );
+    if (!isDimensionsValid) {
+      return false;
+    }
 
     return true;
   };
 
   // Функция отправки формы
   const handleSubmit = async () => {
-    if (!validateForm()) return;
+    const isValid = await validateForm();
+    if (!isValid) return;
 
     setIsSubmitting(true);
 
@@ -217,7 +240,7 @@ export const TvAdvertising = () => {
         seconds: 5,
         store: [], // Оставляем пустым массивом
         is_active: true,
-        tv_number: 0,
+        tv_number: 1, // Сбрасываем на ТВ 1
       });
       setSelectedFile(null);
       setPreviewUrl(null);
@@ -246,7 +269,19 @@ export const TvAdvertising = () => {
           <div>
             <p className="text-lg font-medium mb-2">Изменить рекламу на ТВ</p>
             <p className="text-sm text-muted-foreground mb-4">
-              Требования: WebP или WebM, размер 2160x3840px, 72 DPI
+              Требования: WebP или WebM, размер{" "}
+              {formData.tv_number === 1 ? (
+                <span className="text-red-500 text-[16px] font-semibold">
+                  3840x2160px для ТВ 1
+                </span>
+              ) : formData.tv_number === 2 ? (
+                <span className="text-red-500 text-[16px] font-semibold">
+                  2184x2160px для ТВ 2
+                </span>
+              ) : (
+                "выберите ТВ"
+              )}
+              , 72 DPI
             </p>
           </div>
 
@@ -324,15 +359,24 @@ export const TvAdvertising = () => {
 
             <div className="flex flex-col gap-2">
               <p>Номер ТВ</p>
-              <Select>
+              <Select
+                value={formData.tv_number.toString()}
+                onValueChange={(value) => {
+                  const tvNumber = parseInt(value, 10);
+                  setFormData((prev) => ({ ...prev, tv_number: tvNumber }));
+                }}
+              >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Выберите номер ТВ" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
                     {Array.from({ length: 2 }, (_, index) => (
-                      <SelectItem key={index} value={index.toString()}>
-                        {index + 1}
+                      <SelectItem
+                        key={index + 1}
+                        value={(index + 1).toString()}
+                      >
+                        ТВ {index + 1}
                       </SelectItem>
                     ))}
                   </SelectGroup>
@@ -386,7 +430,7 @@ export const TvAdvertising = () => {
 
             <Button
               className="w-full"
-              disabled={!isValidFile || isSubmitting}
+              disabled={!selectedFile || isSubmitting}
               onClick={handleSubmit}
             >
               {isSubmitting ? "Загрузка файла..." : "Создать рекламу"}

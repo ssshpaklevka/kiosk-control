@@ -67,11 +67,11 @@ export const TableTvAdvertising = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Функция валидации файлов (аналогично HomeAdvertising)
+  // Проверка формата файла
   const validateFile = async (
     file: File
   ): Promise<FileValidationError | null> => {
-    // Проверка формата
+    // Проверяем только формат файла
     const allowedTypes = ["image/webp", "video/webm"];
     if (!allowedTypes.includes(file.type)) {
       return {
@@ -80,56 +80,74 @@ export const TableTvAdvertising = () => {
       };
     }
 
-    // Для изображений проверяем размеры и DPI
+    return null;
+  };
+
+  // Проверка размеров файла в зависимости от выбранного ТВ
+  const validateFileDimensions = async (
+    file: File,
+    tvNumber: number
+  ): Promise<boolean> => {
+    let requiredWidth: number;
+    const requiredHeight: number = 2160;
+
+    if (tvNumber === 1) {
+      // ТВ 1
+      requiredWidth = 3840;
+    } else if (tvNumber === 2) {
+      // ТВ 2
+      requiredWidth = 2184;
+    } else {
+      toast.error("Неверный номер ТВ");
+      return false;
+    }
+
     if (file.type === "image/webp") {
       return new Promise((resolve) => {
         const img = new window.Image();
         img.onload = () => {
-          // Проверка размеров
-          if (img.width !== 2160 || img.height !== 3840) {
-            resolve({
-              type: "dimensions",
-              message: `Неверные размеры: ${img.width}x${img.height}px. Требуется: 2160x3840px`,
-            });
+          if (img.width !== requiredWidth || img.height !== requiredHeight) {
+            toast.error(
+              `Неверные размеры: ${img.width}x${img.height}px. Требуется: ${requiredWidth}x${requiredHeight}px для ТВ ${tvNumber}`
+            );
+            resolve(false);
             return;
           }
-          resolve(null);
+          resolve(true);
         };
         img.onerror = () => {
-          resolve({
-            type: "format",
-            message: "Ошибка загрузки изображения",
-          });
+          toast.error("Ошибка загрузки изображения");
+          resolve(false);
         };
         img.src = URL.createObjectURL(file);
       });
     }
 
-    // Для видео проверяем базовые параметры
     if (file.type === "video/webm") {
       return new Promise((resolve) => {
         const video = document.createElement("video");
         video.onloadedmetadata = () => {
-          if (video.videoWidth !== 2160 || video.videoHeight !== 3840) {
-            resolve({
-              type: "dimensions",
-              message: `Неверные размеры видео: ${video.videoWidth}x${video.videoHeight}px. Требуется: 2160x3840px`,
-            });
+          if (
+            video.videoWidth !== requiredWidth ||
+            video.videoHeight !== requiredHeight
+          ) {
+            toast.error(
+              `Неверные размеры видео: ${video.videoWidth}x${video.videoHeight}px. Требуется: ${requiredWidth}x${requiredHeight}px для ТВ ${tvNumber}`
+            );
+            resolve(false);
             return;
           }
-          resolve(null);
+          resolve(true);
         };
         video.onerror = () => {
-          resolve({
-            type: "format",
-            message: "Ошибка загрузки видео",
-          });
+          toast.error("Ошибка загрузки видео");
+          resolve(false);
         };
         video.src = URL.createObjectURL(file);
       });
     }
 
-    return null;
+    return true;
   };
 
   const handleFileChange = async (
@@ -181,6 +199,17 @@ export const TableTvAdvertising = () => {
     if (editingBanner.tvNumber > 2 || editingBanner.tvNumber < 1) {
       toast.error("Номер ТВ должен быть 1 или 2");
       return;
+    }
+
+    // Проверяем размеры файла, если он загружен
+    if (selectedFile && isValidFile) {
+      const isDimensionsValid = await validateFileDimensions(
+        selectedFile,
+        editingBanner.tvNumber
+      );
+      if (!isDimensionsValid) {
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -381,13 +410,16 @@ export const TableTvAdvertising = () => {
                                 />
                               </div>
                               <div className="flex flex-col gap-2">
-                                <Label>Новое номер ТВ</Label>
+                                <Label>Новые номер ТВ</Label>
                                 <Select
-                                  value={editingBanner.tvNumber.toString()}
+                                  value={
+                                    editingBanner.tvNumber?.toString() || ""
+                                  }
                                   onValueChange={(value) => {
+                                    const newTvNumber = parseInt(value, 10);
                                     setEditingBanner({
                                       ...editingBanner,
-                                      tvNumber: parseInt(value, 10),
+                                      tvNumber: newTvNumber,
                                     });
                                   }}
                                 >
