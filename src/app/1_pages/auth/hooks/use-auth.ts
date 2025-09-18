@@ -7,7 +7,7 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: (credentials: LoginDto) => authApi.login(credentials),
     onSuccess: (data) => {
-      if (data.auth && data.role === "admin") {
+      if (data.auth) {
         // Сохраняем данные пользователя в localStorage
         const userData = {
           role: data.role,
