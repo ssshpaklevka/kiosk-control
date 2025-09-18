@@ -23,7 +23,7 @@ export const useLogin = () => {
         }
         toast.success("Авторизация успешна!");
       } else {
-        toast.error("Недостаточно прав для доступа");
+        toast.error("Ошибка авторизации");
       }
     },
     onError: (error: Error) => {

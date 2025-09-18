@@ -22,7 +22,7 @@ export const Auth = () => {
 
     try {
       const response = await loginMutation.mutateAsync({ email, password });
-      if (response.auth && response.role === "admin") {
+      if (response.auth) {
         login({
           role: response.role,
           store: response.store,

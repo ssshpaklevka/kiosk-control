@@ -1,14 +1,14 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import {
   createContext,
-  useContext,
-  useState,
-  useEffect,
   ReactNode,
+  useContext,
+  useEffect,
+  useState,
 } from "react";
 import { AuthUser } from "../1_pages/auth/types/auth";
-import { useRouter } from "next/navigation";
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -71,7 +71,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const value = {
     user,
-    isAuthenticated: !!user && user.role === "admin",
+    isAuthenticated: !!user,
     isLoading,
     login,
     logout,
