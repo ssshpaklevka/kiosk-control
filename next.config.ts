@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  basePath: "/terminal-admin",
+  // basePath: "/terminal-admin",
   /* config options here */
   images: {
     remotePatterns: [

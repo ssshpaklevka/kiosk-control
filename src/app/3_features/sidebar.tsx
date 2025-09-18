@@ -15,12 +15,17 @@ import {
   Salad,
   ShoppingCart,
   Tv,
+  TvIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "../providers/auth-provider";
 
 export type ActiveSection = "advertising" | "product" | "user";
-export type AdvertisingSubSection = "home" | "loyalty" | "product-ads";
+export type AdvertisingSubSection =
+  | "home"
+  | "loyalty"
+  | "product-ads"
+  | "tv-ads";
 export type ProductSubSection =
   | "create"
   | "rename"
@@ -94,6 +99,11 @@ export function AdminSidebar({
       id: "product-ads" as const,
       label: "Реклама в каталоге",
       icon: Package,
+    },
+    {
+      id: "tv-ads" as const,
+      label: "Реклама на ТВ",
+      icon: TvIcon,
     },
   ];
 

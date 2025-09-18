@@ -43,6 +43,9 @@ export const TableHeaderAdvertising = () => {
   const { mutate: updateBanner } = useUpdateHeaderBanner();
   const { mutate: deleteBanner } = useDeleteHeaderBanner();
   const [editingBanner, setEditingBanner] = useState<BannerMain | null>(null);
+  const [updatedBannerIds, setUpdatedBannerIds] = useState<Set<string>>(
+    new Set()
+  );
 
   // Состояние для валидации файлов
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -52,6 +55,7 @@ export const TableHeaderAdvertising = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // Функция валидации файлов (аналогично HomeAdvertising)
   const validateFile = async (
@@ -183,15 +187,23 @@ export const TableHeaderAdvertising = () => {
         updateData.file = selectedFile;
       }
 
+      const finalData = {
+        name: updateData.name,
+        seconds: Number(updateData.seconds),
+        is_active: updateData.is_active,
+        // НЕ передаем store, если он не нужен - пусть остается undefined
+        ...(updateData.file && { file: updateData.file }),
+      };
+
       await updateBanner({
         id: Number(editingBanner.id),
-        data: {
-          name: updateData.name,
-          seconds: Number(updateData.seconds),
-          is_active: updateData.is_active,
-          ...(updateData.file && { file: updateData.file }),
-        },
+        data: finalData,
       });
+
+      // Если обновили изображение, добавляем ID баннера в список обновленных
+      if (selectedFile && isValidFile && editingBanner.id) {
+        setUpdatedBannerIds((prev) => new Set(prev).add(editingBanner.id!));
+      }
 
       // Сброс состояния файла
       setSelectedFile(null);
@@ -199,6 +211,7 @@ export const TableHeaderAdvertising = () => {
       setIsValidFile(false);
       setValidationError(null);
       setEditingBanner(null);
+      setIsDialogOpen(false); // Закрываем модалку после успешного обновления
     } catch (error) {
       console.error("Ошибка обновления баннера:", error);
     } finally {
@@ -213,6 +226,7 @@ export const TableHeaderAdvertising = () => {
     setPreviewUrl(null);
     setIsValidFile(false);
     setValidationError(null);
+    setIsDialogOpen(true); // Открываем модалку
   };
 
   const handleSecondsChange = (value: string) => {
@@ -257,188 +271,238 @@ export const TableHeaderAdvertising = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {banners?.map((banner) => (
-                  <TableRow key={banner.id}>
-                    <TableCell>
-                      {banner.type === "video" ? (
-                        <video
-                          src={banner.url}
-                          className="size-[100px] object-cover rounded"
-                          controls
-                        />
-                      ) : (
-                        <Image
-                          src={banner.url}
-                          alt={banner.name}
-                          width={100}
-                          height={100}
-                        />
-                      )}
-                    </TableCell>
-                    <TableCell>{banner.name}</TableCell>
-                    <TableCell>{banner.seconds} секунд</TableCell>
-                    <TableCell>
-                      {banner.is_active === true ? "Да" : "Нет"}
-                    </TableCell>
-                    <TableCell>
-                      {banner.type === "video" ? "Видео" : "Изображение"}
-                    </TableCell>
-                    <TableCell>
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => handleEditBanner(banner)}
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-h-[90vh] overflow-y-auto">
-                          <DialogHeader>
-                            <DialogTitle>
-                              Обновить баннер &quot;{banner.name}&quot; ?
-                            </DialogTitle>
-                          </DialogHeader>
-                          {editingBanner && (
-                            <>
-                              <div className="flex flex-col gap-2">
-                                <Label>Новое название баннера</Label>
-                                <Input
-                                  value={editingBanner.name}
-                                  onChange={(e) =>
-                                    setEditingBanner({
-                                      ...editingBanner,
-                                      name: e.target.value,
-                                    })
-                                  }
-                                />
-                              </div>
-                              <div className="flex flex-col gap-2">
-                                <Label>Новое время показа в секундах</Label>
-                                <Input
-                                  type="number"
-                                  value={
-                                    editingBanner.seconds === 0
-                                      ? ""
-                                      : editingBanner.seconds.toString()
-                                  }
-                                  onChange={(e) =>
-                                    handleSecondsChange(e.target.value)
-                                  }
-                                  placeholder="Введите количество секунд"
-                                />
-                              </div>
-                              <div className="flex flex-col gap-2">
-                                <Label>Новое изображение</Label>
-                                <Button
-                                  onClick={handleUploadClick}
-                                  variant="outline"
-                                  className="w-full"
-                                >
-                                  <Upload className="w-4 h-4 mr-2" />
-                                  Выбрать файл
-                                </Button>
+                {banners?.map((banner) => {
+                  const isUpdated = updatedBannerIds.has(banner.id!);
+                  const imageUrl = isUpdated
+                    ? `${banner.url}?updated=${Date.now()}`
+                    : banner.url;
 
-                                <Input
-                                  ref={fileInputRef}
-                                  type="file"
-                                  accept=".webp,.webm"
-                                  onChange={handleFileChange}
-                                  className="hidden"
-                                />
-
-                                {selectedFile && (
-                                  <div className="p-3 border rounded-md">
-                                    <p className="text-sm font-medium">
-                                      {selectedFile.name}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                      {(
-                                        selectedFile.size /
-                                        1024 /
-                                        1024
-                                      ).toFixed(2)}{" "}
-                                      MB
-                                    </p>
+                  return (
+                    <TableRow key={banner.id}>
+                      <TableCell>
+                        {banner.type === "video" ? (
+                          <video
+                            src={imageUrl}
+                            className="size-[100px] object-cover rounded"
+                            controls
+                            key={`video-${banner.id}-${isUpdated ? Date.now() : "original"}`}
+                          />
+                        ) : (
+                          <Image
+                            src={imageUrl}
+                            alt={banner.name}
+                            width={100}
+                            height={100}
+                            key={`image-${banner.id}-${isUpdated ? Date.now() : "original"}`}
+                            unoptimized={isUpdated} // Отключаем оптимизацию только для обновленных
+                          />
+                        )}
+                      </TableCell>
+                      <TableCell>{banner.name}</TableCell>
+                      <TableCell>{banner.seconds} секунд</TableCell>
+                      <TableCell>
+                        {banner.is_active === true ? "Да" : "Нет"}
+                      </TableCell>
+                      <TableCell>
+                        {banner.type === "video" ? "Видео" : "Изображение"}
+                      </TableCell>
+                      <TableCell>
+                        <Dialog
+                          open={isDialogOpen}
+                          onOpenChange={setIsDialogOpen}
+                        >
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleEditBanner(banner)}
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                              <DialogTitle>
+                                Обновить баннер &quot;{banner.name}&quot; ?
+                              </DialogTitle>
+                            </DialogHeader>
+                            {editingBanner && (
+                              <>
+                                <div className="flex flex-col gap-2">
+                                  <Label>Новое название баннера</Label>
+                                  <Input
+                                    value={editingBanner.name}
+                                    onChange={(e) =>
+                                      setEditingBanner({
+                                        ...editingBanner,
+                                        name: e.target.value,
+                                      })
+                                    }
+                                  />
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                  <Label>Новое время показа в секундах</Label>
+                                  <Input
+                                    type="number"
+                                    value={
+                                      editingBanner.seconds === 0
+                                        ? ""
+                                        : editingBanner.seconds.toString()
+                                    }
+                                    onChange={(e) =>
+                                      handleSecondsChange(e.target.value)
+                                    }
+                                    placeholder="Введите количество секунд"
+                                  />
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                  <Label>Активен ли баннер?</Label>
+                                  <div className="flex flex-row gap-2">
+                                    <Button
+                                      type="button"
+                                      variant={
+                                        editingBanner.is_active
+                                          ? "default"
+                                          : "outline"
+                                      }
+                                      onClick={() =>
+                                        setEditingBanner({
+                                          ...editingBanner,
+                                          is_active: true,
+                                        })
+                                      }
+                                    >
+                                      Да
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant={
+                                        !editingBanner.is_active
+                                          ? "default"
+                                          : "outline"
+                                      }
+                                      onClick={() =>
+                                        setEditingBanner({
+                                          ...editingBanner,
+                                          is_active: false,
+                                        })
+                                      }
+                                    >
+                                      Нет
+                                    </Button>
                                   </div>
-                                )}
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                  <Label>Новое изображение</Label>
+                                  <Button
+                                    onClick={handleUploadClick}
+                                    variant="outline"
+                                    className="w-full"
+                                  >
+                                    <Upload className="w-4 h-4 mr-2" />
+                                    Выбрать файл
+                                  </Button>
 
-                                {validationError && (
-                                  <div className="flex items-start gap-2 p-3 border border-destructive rounded-md bg-destructive/10">
-                                    <AlertCircle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
-                                    <div className="text-sm text-destructive">
-                                      <p className="font-medium">
-                                        Ошибка валидации
+                                  <Input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept=".webp,.webm"
+                                    onChange={handleFileChange}
+                                    className="hidden"
+                                  />
+
+                                  {selectedFile && (
+                                    <div className="p-3 border rounded-md">
+                                      <p className="text-sm font-medium">
+                                        {selectedFile.name}
                                       </p>
-                                      <p>{validationError.message}</p>
-                                    </div>
-                                  </div>
-                                )}
-
-                                {isValidFile && (
-                                  <div className="flex items-start gap-2 p-3 border border-green-500 rounded-md bg-green-50 dark:bg-green-950/20">
-                                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                                    <div className="text-sm text-green-700 dark:text-green-400">
-                                      <p className="font-medium">
-                                        Файл прошел валидацию
+                                      <p className="text-xs text-muted-foreground">
+                                        {(
+                                          selectedFile.size /
+                                          1024 /
+                                          1024
+                                        ).toFixed(2)}{" "}
+                                        MB
                                       </p>
-                                      <p>Готов к загрузке</p>
                                     </div>
-                                  </div>
-                                )}
+                                  )}
 
-                                {previewUrl && (
-                                  <div className="flex flex-col gap-2">
-                                    <Label className="text-lg font-semibold">
-                                      Предварительный просмотр контента:
-                                    </Label>
-                                    <div>
-                                      {selectedFile?.type === "video/webm" ? (
-                                        <video
-                                          src={previewUrl}
-                                          className=""
-                                          controls
-                                        />
-                                      ) : (
-                                        <Image
-                                          src={previewUrl}
-                                          alt="Preview"
-                                          width={400}
-                                          height={400}
-                                        />
-                                      )}
+                                  {validationError && (
+                                    <div className="flex items-start gap-2 p-3 border border-destructive rounded-md bg-destructive/10">
+                                      <AlertCircle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
+                                      <div className="text-sm text-destructive">
+                                        <p className="font-medium">
+                                          Ошибка валидации
+                                        </p>
+                                        <p>{validationError.message}</p>
+                                      </div>
                                     </div>
-                                  </div>
-                                )}
-                              </div>
+                                  )}
 
-                              <div className="flex gap-2 mt-4">
-                                <Button
-                                  onClick={handleUpdateBanner}
-                                  disabled={isSubmitting}
-                                  className="flex-1"
-                                >
-                                  {isSubmitting
-                                    ? "Сохранение..."
-                                    : "Сохранить изменения"}
-                                </Button>
-                              </div>
-                            </>
-                          )}
-                        </DialogContent>
-                      </Dialog>
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="outline"
-                        onClick={() => handleDeleteBanner(Number(banner.id))}
-                      >
-                        Удалить
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                                  {isValidFile && (
+                                    <div className="flex items-start gap-2 p-3 border border-green-500 rounded-md bg-green-50 dark:bg-green-950/20">
+                                      <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                      <div className="text-sm text-green-700 dark:text-green-400">
+                                        <p className="font-medium">
+                                          Файл прошел валидацию
+                                        </p>
+                                        <p>Готов к загрузке</p>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {previewUrl && (
+                                    <div className="flex flex-col gap-2">
+                                      <Label className="text-lg font-semibold">
+                                        Предварительный просмотр контента:
+                                      </Label>
+                                      <div>
+                                        {selectedFile?.type === "video/webm" ? (
+                                          <video
+                                            src={previewUrl}
+                                            className=""
+                                            controls
+                                          />
+                                        ) : (
+                                          <Image
+                                            src={previewUrl}
+                                            alt="Preview"
+                                            width={400}
+                                            height={400}
+                                          />
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="flex gap-2 mt-4">
+                                  <Button
+                                    onClick={handleUpdateBanner}
+                                    disabled={isSubmitting}
+                                    className="flex-1"
+                                  >
+                                    {isSubmitting
+                                      ? "Сохранение..."
+                                      : "Сохранить изменения"}
+                                  </Button>
+                                </div>
+                              </>
+                            )}
+                          </DialogContent>
+                        </Dialog>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="outline"
+                          onClick={() => handleDeleteBanner(Number(banner.id))}
+                        >
+                          Удалить
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           ) : (

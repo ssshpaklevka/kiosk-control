@@ -54,13 +54,20 @@ export const bannerLoyalityApi = {
       formData.append("is_active", bannerData.is_active.toString());
     }
 
-    if (bannerData.store !== undefined) {
+    if (bannerData.store !== undefined && Array.isArray(bannerData.store)) {
       bannerData.store.forEach((storeId, index) => {
-        formData.append(`store[${index}]`, storeId);
+        if (storeId !== undefined && storeId !== null) {
+          formData.append(`store[${index}]`, storeId.toString());
+        }
       });
     }
 
-    const response = await apiClient.patch(`/banner-loyality/${id}`, formData);
+    const response = await apiClient.patch(`/banner-loyality/${id}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      timeout: 60000,
+    });
     return response.data;
   },
 

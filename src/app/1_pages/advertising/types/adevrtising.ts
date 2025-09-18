@@ -23,6 +23,8 @@ export interface BannerMain {
   is_active: boolean;
   type: string;
   url: string;
+  updated_at?: string;
+  create_at?: string;
 }
 
 export interface CreateBanner {
@@ -39,6 +41,35 @@ export interface UpdateBannerMainDto {
   store?: string[];
   is_active?: boolean;
   file?: File;
+}
+
+export interface BannerTv {
+  id?: string;
+  name: string;
+  seconds: number;
+  store: string[];
+  is_active: boolean;
+  type: string;
+  url: string;
+  tvNumber: number;
+}
+
+export interface CreateBannerTv {
+  name: string;
+  seconds: number;
+  store?: number[]; // Исправлено на number[]
+  is_active: boolean;
+  file: File;
+  tv_number: number;
+}
+
+export interface UpdateBannerTvDto {
+  name?: string;
+  seconds?: number;
+  store?: number[]; // Исправлено на number[]
+  is_active?: boolean;
+  file?: File;
+  tv_number?: number;
 }
 
 // // Типы для баннера в шапке заказа

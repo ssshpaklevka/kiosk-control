@@ -1,29 +1,28 @@
-import { apiClient } from "@/app/3_features/api/api-client";
+import { apiClient } from "../../../3_features/api/api-client";
 import {
-  BannerMain,
-  CreateBanner,
-  UpdateBannerMainDto,
+  BannerTv,
+  CreateBannerTv,
+  UpdateBannerTvDto,
 } from "../types/adevrtising";
 
-export const headerBannerApi = {
-  getBanners: async (): Promise<BannerMain[]> => {
+export const bannerTvApi = {
+  getBanners: async (): Promise<BannerTv[]> => {
     try {
-      const response = await apiClient.get("/banner-menu");
+      const response = await apiClient.get("/banner-tv");
       return Array.isArray(response.data)
         ? response.data
-        : response.data?.data || response.data?.bannerMenu || [];
+        : response.data?.data || response.data?.bannerTv || [];
     } catch (error) {
-      console.error("API Error:", error);
       throw error;
     }
   },
 
-  getBannerById: async (id: number): Promise<BannerMain> => {
-    const response = await apiClient.get(`/banner-menu/${id}`);
+  getBannerById: async (id: number): Promise<BannerTv> => {
+    const response = await apiClient.get(`/banner-tv/${id}`);
     return response.data;
   },
 
-  createBanner: async (bannerData: CreateBanner): Promise<BannerMain> => {
+  createBanner: async (bannerData: CreateBannerTv): Promise<BannerTv> => {
     const formData = new FormData();
 
     formData.append("file", bannerData.file);
@@ -34,11 +33,11 @@ export const headerBannerApi = {
 
     if (bannerData.store && bannerData.store.length > 0) {
       bannerData.store.forEach((storeId, index) => {
-        formData.append(`store[${index}]`, storeId);
+        formData.append(`store[${index}]`, storeId.toString());
       });
     }
 
-    const response = await apiClient.post("/banner-menu", formData, {
+    const response = await apiClient.post("/banner-tv", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -49,8 +48,8 @@ export const headerBannerApi = {
 
   updateBanner: async (
     id: number,
-    bannerData: UpdateBannerMainDto
-  ): Promise<BannerMain> => {
+    bannerData: UpdateBannerTvDto
+  ): Promise<BannerTv> => {
     const formData = new FormData();
 
     if (bannerData.file) {
@@ -77,7 +76,11 @@ export const headerBannerApi = {
       });
     }
 
-    const response = await apiClient.patch(`/banner-menu/${id}`, formData, {
+    if (bannerData.tv_number !== undefined) {
+      formData.append("tv_number", bannerData.tv_number.toString());
+    }
+
+    const response = await apiClient.patch(`/banner-tv/${id}`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -87,6 +90,6 @@ export const headerBannerApi = {
   },
 
   deleteBanner: async (id: number): Promise<void> => {
-    await apiClient.delete(`/banner-menu/${id}`);
+    await apiClient.delete(`/banner-tv/${id}`);
   },
 };
