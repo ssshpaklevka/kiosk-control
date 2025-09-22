@@ -92,10 +92,10 @@ export const GroupsProduct = () => {
       const img = new window.Image();
       img.onload = () => {
         // Минимальное разрешение для качественного фото группы
-        if (img.width < 500 || img.height < 500) {
+        if (img.width < 150 || img.height < 150) {
           resolve({
             type: "dimensions",
-            message: `Изображение слишком маленькое: ${img.width}x${img.height}px. Минимум: 500x500px`,
+            message: `Изображение слишком маленькое: ${img.width}x${img.height}px. Минимум: 150x150px`,
           });
           return;
         }

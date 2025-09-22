@@ -32,7 +32,7 @@ export const useCreateProduct = () => {
     mutationFn: (productData: CreateProduct) =>
       productsApi.createProduct(productData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["product-main"] });
       toast.success("Продукт успешно создан!");
     },
     onError: (error) => {
@@ -52,7 +52,7 @@ export const useUpdateProduct = () => {
     mutationFn: ({ productData, idProduct }) =>
       productsApi.updateProduct(productData, idProduct),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["product-main"] });
       toast.success("Продукт успешно обновлен!");
     },
     onError: (error) => {
