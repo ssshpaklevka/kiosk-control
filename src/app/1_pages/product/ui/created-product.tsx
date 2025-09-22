@@ -84,7 +84,7 @@ export const CreatedProduct = () => {
       return false;
     }
 
-    if (formData.extras.length === 0) {
+    if (formData.ingredients.length === 0) {
       toast.error("Необходимо выбрать хотя бы один ингредиент");
       return false;
     }

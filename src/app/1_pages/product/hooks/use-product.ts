@@ -14,6 +14,7 @@ export const useGetProduct = () => {
   return useQuery<Product[]>({
     queryKey: ["product-main"],
     queryFn: productsApi.getProduct,
+    refetchOnMount: "always",
   });
 };
 

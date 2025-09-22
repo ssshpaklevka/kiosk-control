@@ -34,9 +34,7 @@ export const TableProducts = () => {
   const deleteProductMutation = useDeleteProduct();
 
   const handleDeleteProduct = (id: number) => {
-    if (confirm("Вы уверены, что хотите удалить этот продукт?")) {
-      deleteProductMutation.mutate(id);
-    }
+    deleteProductMutation.mutate(id);
   };
 
   const handleViewProduct = (id: number) => {
