@@ -189,9 +189,15 @@ export const ProductDetailsModal = ({
             <CardContent className="p-4">
               <h3 className="font-semibold mb-3">Подгруппа</h3>
               <div className="flex flex-wrap gap-2">
-                <Badge variant="outline" className="text-md font-normal">
-                  {product.subgroup}
-                </Badge>
+                {product.subgroup.map((subgroup) => (
+                  <Badge
+                    key={subgroup}
+                    variant="outline"
+                    className="text-md font-normal"
+                  >
+                    {subgroup}
+                  </Badge>
+                ))}
               </div>
             </CardContent>
           </Card>

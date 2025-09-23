@@ -25,14 +25,18 @@ import { CreateGroupSub } from "../types/groups-sub.dto";
 export const SubgroupsProduct = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreating, setIsCreating] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [updatingSubGroupId, setUpdatingSubGroupId] = useState<number | null>(
+    null
+  );
+  const [deletingSubGroupId, setDeletingSubGroupId] = useState<number | null>(
+    null
+  );
   const [groupSub, setGroupSub] = useState({
     name: "",
   });
   const [newSubGroup, setNewSubGroup] = useState({
     name: "",
   });
-  const [isDeleting, setIsDeleting] = useState(false);
   const { data: subGroups = [], isLoading, error } = useGetGroupsSub();
   const { mutate: createGroupSub } = useCreateGroupSub();
   const { mutate: deleteGroupSub } = useDeleteGroupSub();
@@ -56,12 +60,12 @@ export const SubgroupsProduct = () => {
 
   const handleDeleteSubGroup = (id: number) => {
     deleteGroupSub(id);
-    setIsDeleting(false);
+    setDeletingSubGroupId(null);
   };
 
   const handleUpdateSubGroup = (id: number, groupSub: CreateGroupSub) => {
     updateGroupSub({ id, groupSub });
-    setIsUpdating(false);
+    setUpdatingSubGroupId(null);
     setGroupSub({ name: "" });
   };
 
@@ -151,7 +155,12 @@ export const SubgroupsProduct = () => {
                     <h3 className="text-lg font-semibold">{group.name}</h3>
                   </div>
                   <div className="flex gap-2">
-                    <Dialog open={isUpdating} onOpenChange={setIsUpdating}>
+                    <Dialog
+                      open={updatingSubGroupId === group.id}
+                      onOpenChange={(open) =>
+                        setUpdatingSubGroupId(open ? group.id : null)
+                      }
+                    >
                       <DialogTrigger>
                         <Button variant="outline" size="sm">
                           <Edit2 className="w-4 h-4" />
@@ -186,14 +195,19 @@ export const SubgroupsProduct = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setIsUpdating(false)}
+                            onClick={() => setUpdatingSubGroupId(null)}
                           >
                             Отмена
                           </Button>
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
-                    <Dialog open={isDeleting} onOpenChange={setIsDeleting}>
+                    <Dialog
+                      open={deletingSubGroupId === group.id}
+                      onOpenChange={(open) =>
+                        setDeletingSubGroupId(open ? group.id : null)
+                      }
+                    >
                       <DialogTrigger>
                         <Button variant="outline" size="sm">
                           <Trash2 className="w-4 h-4" />
@@ -217,7 +231,7 @@ export const SubgroupsProduct = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setIsDeleting(false)}
+                            onClick={() => setDeletingSubGroupId(null)}
                           >
                             Отмена
                           </Button>

@@ -25,14 +25,18 @@ import { CreateProductIngredient } from "../types/product.dto";
 export const IngredientsProduct = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreating, setIsCreating] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
   const [editingIngredient, setEditingIngredient] = useState({
     name: "",
   });
   const [newIngredient, setNewIngredient] = useState({
     name: "",
   });
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [deletingIngredientId, setDeletingIngredientId] = useState<
+    number | null
+  >(null);
+  const [updatingIngredientId, setUpdatingIngredientId] = useState<
+    number | null
+  >(null);
   const {
     data: ingredients = [],
     isLoading,
@@ -60,7 +64,7 @@ export const IngredientsProduct = () => {
 
   const handleDeleteIngredient = (id: number) => {
     deleteIngredient(id);
-    setIsDeleting(false);
+    setDeletingIngredientId(null);
   };
 
   const handleUpdateIngredient = (
@@ -68,7 +72,7 @@ export const IngredientsProduct = () => {
     ingredient: CreateProductIngredient
   ) => {
     updateIngredient({ id, ingredient });
-    setIsUpdating(false);
+    setUpdatingIngredientId(null);
     setEditingIngredient({ name: "" });
   };
 
@@ -162,7 +166,12 @@ export const IngredientsProduct = () => {
                     <h3 className="text-lg font-semibold">{ingredient.name}</h3>
                   </div>
                   <div className="flex gap-2">
-                    <Dialog open={isUpdating} onOpenChange={setIsUpdating}>
+                    <Dialog
+                      open={updatingIngredientId === ingredient.id}
+                      onOpenChange={(open) =>
+                        setUpdatingIngredientId(open ? ingredient.id : null)
+                      }
+                    >
                       <DialogTrigger>
                         <Button variant="outline" size="sm">
                           <Edit2 className="w-4 h-4" />
@@ -200,14 +209,19 @@ export const IngredientsProduct = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setIsUpdating(false)}
+                            onClick={() => setUpdatingIngredientId(null)}
                           >
                             Отмена
                           </Button>
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
-                    <Dialog open={isDeleting} onOpenChange={setIsDeleting}>
+                    <Dialog
+                      open={deletingIngredientId === ingredient.id}
+                      onOpenChange={(open) =>
+                        setDeletingIngredientId(open ? ingredient.id : null)
+                      }
+                    >
                       <DialogTrigger>
                         <Button variant="outline" size="sm">
                           <Trash2 className="w-4 h-4" />
@@ -233,7 +247,7 @@ export const IngredientsProduct = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setIsDeleting(false)}
+                            onClick={() => setDeletingIngredientId(null)}
                           >
                             Отмена
                           </Button>

@@ -38,7 +38,8 @@ interface FileValidationError {
 export const GroupsProduct = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreating, setIsCreating] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [updatingGroupId, setUpdatingGroupId] = useState<number | null>(null);
+  const [deletingGroupId, setDeletingGroupId] = useState<number | null>(null);
   const [editingGroup, setEditingGroup] = useState({
     name: "",
     image: new File([], "image.png"),
@@ -47,7 +48,6 @@ export const GroupsProduct = () => {
     name: "",
     image: new File([], "image.png"),
   });
-  const [isDeleting, setIsDeleting] = useState(false);
 
   // Состояния для загрузки изображений
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -70,11 +70,12 @@ export const GroupsProduct = () => {
   const validateFile = async (
     file: File
   ): Promise<FileValidationError | null> => {
-    // Проверка формата - только WebP
-    if (file.type !== "image/webp") {
+    // Проверка формата - WebP и PNG
+    const allowedTypes = ["image/webp", "image/png"];
+    if (!allowedTypes.includes(file.type)) {
       return {
         type: "format",
-        message: "Поддерживаются только файлы формата WebP",
+        message: "Поддерживаются только файлы формата WebP и PNG",
       };
     }
 
@@ -160,7 +161,7 @@ export const GroupsProduct = () => {
 
   const handleDeleteGroup = (id: number) => {
     deleteGroup(id);
-    setIsDeleting(false);
+    setDeletingGroupId(null);
   };
 
   const handleUpdateGroup = (id: number) => {
@@ -172,7 +173,7 @@ export const GroupsProduct = () => {
           : undefined,
     };
     updateGroup({ id, group: groupData });
-    setIsUpdating(false);
+    setUpdatingGroupId(null);
     setEditingGroup({ name: "", image: new File([], "image.png") });
   };
   return (
@@ -251,7 +252,7 @@ export const GroupsProduct = () => {
                           Нажмите чтобы выбрать изображение группы
                         </p>
                         <p className="text-xs text-center px-4 mt-2 text-muted-foreground/70">
-                          Только WebP формат, до 10MB (обязательно)
+                          WebP и PNG формат, до 10MB (обязательно)
                         </p>
                       </div>
                     )}
@@ -261,7 +262,7 @@ export const GroupsProduct = () => {
                   <Input
                     ref={fileInputRef}
                     type="file"
-                    accept="image/webp"
+                    accept="image/webp,image/png"
                     onChange={handleFileChange}
                     className="hidden"
                   />
@@ -410,9 +411,9 @@ export const GroupsProduct = () => {
                   </div>
                   <div className="flex gap-2">
                     <Dialog
-                      open={isUpdating}
+                      open={updatingGroupId === group.id}
                       onOpenChange={(open) => {
-                        setIsUpdating(open);
+                        setUpdatingGroupId(open ? group.id : null);
                         if (open) {
                           setEditingGroup({
                             name: group.name,
@@ -456,14 +457,19 @@ export const GroupsProduct = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setIsUpdating(false)}
+                            onClick={() => setUpdatingGroupId(null)}
                           >
                             Отмена
                           </Button>
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
-                    <Dialog open={isDeleting} onOpenChange={setIsDeleting}>
+                    <Dialog
+                      open={deletingGroupId === group.id}
+                      onOpenChange={(open) =>
+                        setDeletingGroupId(open ? group.id : null)
+                      }
+                    >
                       <DialogTrigger>
                         <Button variant="outline" size="sm">
                           <Trash2 className="w-4 h-4" />
@@ -487,7 +493,7 @@ export const GroupsProduct = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setIsDeleting(false)}
+                            onClick={() => setDeletingGroupId(null)}
                           >
                             Отмена
                           </Button>
