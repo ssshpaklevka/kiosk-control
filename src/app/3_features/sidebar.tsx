@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
+  Apple,
   ChevronDown,
   ChevronRight,
   Edit3,
@@ -13,6 +14,7 @@ import {
   Package,
   Plus,
   Salad,
+  ShoppingBasket,
   ShoppingCart,
   Tv,
   TvIcon,
@@ -32,7 +34,9 @@ export type ProductSubSection =
   | "subgroups"
   | "groups"
   | "ingredients"
-  | "products";
+  | "products"
+  | "product-types"
+  | "product-extras";
 
 interface AdminSidebarProps {
   activeSection: ActiveSection;
@@ -137,6 +141,16 @@ export function AdminSidebar({
       id: "products" as const,
       label: "Продукты",
       icon: Package,
+    },
+    {
+      id: "product-types" as const,
+      label: "Типы продуктов",
+      icon: ShoppingBasket,
+    },
+    {
+      id: "product-extras" as const,
+      label: "Дополнительные продукты",
+      icon: Apple,
     },
   ];
 

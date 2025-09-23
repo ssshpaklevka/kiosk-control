@@ -189,13 +189,13 @@ export const ProductDetailsModal = ({
             <CardContent className="p-4">
               <h3 className="font-semibold mb-3">Подгруппа</h3>
               <div className="flex flex-wrap gap-2">
-                {product.subgroup.map((subgroup) => (
+                {product.subgroups.map((subgroup) => (
                   <Badge
-                    key={subgroup}
+                    key={subgroup.id}
                     variant="outline"
                     className="text-md font-normal"
                   >
-                    {subgroup}
+                    {subgroup.name}
                   </Badge>
                 ))}
               </div>
@@ -265,13 +265,13 @@ export const ProductDetailsModal = ({
               <CardContent className="p-4">
                 <h3 className="font-semibold mb-3">Ингредиенты</h3>
                 <div className="flex flex-wrap gap-2">
-                  {product.ingredients.map((ingredient, index) => (
+                  {product.ingredients.map((ingredient) => (
                     <Badge
-                      key={index}
+                      key={ingredient.id}
                       variant="outline"
                       className="text-md font-normal"
                     >
-                      {ingredient}
+                      {ingredient.name}
                     </Badge>
                   ))}
                 </div>

@@ -1,4 +1,7 @@
-import { VARIANT_PRODUCT_ENUM } from "../enum/product-type.enum";
+import {
+  TYPE_PRODUCT_ENUM,
+  VARIANT_PRODUCT_ENUM,
+} from "../enum/product-type.enum";
 
 export interface CreateProduct {
   name: string;
@@ -20,11 +23,30 @@ export interface CreateProduct {
 
 export interface UpdateProduct {
   name: string;
-  description: string;
   image?: File;
+  description: string;
+  variant: VARIANT_PRODUCT_ENUM;
+  groups: number[];
+  subgroups: number[];
+  extras: number[];
+  type: number[];
+  ingredients: number[];
+  composition: string;
+  fats: number;
+  proteins: number;
+  carbohydrates: number;
+  calories: number;
+  color: string;
+}
+
+export interface UpdateProductSet {
+  // id: number;
+  name: string;
+  image?: File;
+  description: string;
   price: number;
-  type: string;
   weight: number;
+  type: TYPE_PRODUCT_ENUM;
 }
 
 export interface GroupOriginal {
@@ -72,13 +94,20 @@ export interface Product {
     id: number;
     name: string;
   }[];
-  subgroup: string[];
+  subgroups: {
+    id: number;
+    name: string;
+  }[];
   extras: {
     id: number;
     name: string;
     price: number;
+    weight: number;
   }[];
-  ingredients: string[];
+  ingredients: {
+    id: number;
+    name: string;
+  }[];
   type: {
     id: number;
     name: string;

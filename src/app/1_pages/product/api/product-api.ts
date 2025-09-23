@@ -7,6 +7,7 @@ import {
   ProductOriginal,
   ProductType,
   UpdateProduct,
+  UpdateProductSet,
 } from "../types/product.dto";
 
 export const productsApi = {
@@ -52,20 +53,35 @@ export const productsApi = {
   },
 
   updateProduct: async (productData: UpdateProduct, idProduct: number) => {
+    // Всегда используем FormData (как в createProduct)
     const formData = new FormData();
 
+    // Если есть новое изображение, используем его, иначе используем существующее
     if (productData.image) {
       formData.append("image", productData.image);
     }
 
     formData.append("name", productData.name);
     formData.append("description", productData.description);
-    formData.append("price", productData.price.toString());
-    formData.append("type", productData.type);
-    formData.append("weight", productData.weight.toString());
+    formData.append("composition", productData.composition);
+    formData.append("calories", productData.calories.toString());
+    formData.append("proteins", productData.proteins.toString());
+    formData.append("fats", productData.fats.toString());
+    formData.append("carbohydrates", productData.carbohydrates.toString());
+    formData.append("color", productData.color);
+    formData.append("variant", productData.variant);
 
-    const response = await apiClient.post(
-      `product-original/update-product/${idProduct}`,
+    formData.append("groups", JSON.stringify(productData.groups || []));
+    formData.append("subgroups", JSON.stringify(productData.subgroups || []));
+    formData.append("extras", JSON.stringify(productData.extras || []));
+    formData.append("type", JSON.stringify(productData.type || []));
+    formData.append(
+      "ingredients",
+      JSON.stringify(productData.ingredients || [])
+    );
+
+    const response = await apiClient.patch(
+      `product-main/${idProduct}`,
       formData,
       {
         headers: {
@@ -86,6 +102,42 @@ export const productsApi = {
       params: { groupCode },
     });
     return response.data;
+  },
+
+  updateProductSet: async (
+    productData: UpdateProductSet,
+    idProduct: number
+  ) => {
+    // Проверяем, есть ли файл для загрузки
+    if (productData.image) {
+      // Если есть файл, используем FormData
+      const formData = new FormData();
+
+      formData.append("name", productData.name);
+      formData.append("description", productData.description);
+      formData.append("price", productData.price.toString());
+      formData.append("type", productData.type);
+      formData.append("weight", productData.weight.toString());
+      formData.append("image", productData.image);
+
+      const response = await apiClient.post(
+        `product-original/update-product/${idProduct}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      return response.data;
+    } else {
+      // Если нет файла, отправляем обычный JSON
+      const response = await apiClient.post(
+        `product-original/update-product/${idProduct}`,
+        productData
+      );
+      return response.data;
+    }
   },
 
   getProductExtras: async (): Promise<ProductIngredient[]> => {

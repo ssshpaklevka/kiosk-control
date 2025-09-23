@@ -20,21 +20,28 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Eye, Trash2 } from "lucide-react";
+import { Eye, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useDeleteProduct, useGetProduct } from "../hooks/use-product";
 import { ProductDetailsModal } from "./product-details-modal";
+import { UpdateProduct } from "./update-product";
 
 export const TableProducts = () => {
   const [selectedProductId, setSelectedProductId] = useState<number | null>(
     null
   );
+  const [deleProductId, setDeleProductId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [updatingProductId, setUpdatingProductId] = useState<number | null>(
+    null
+  );
+  const [isUpdatingProduct, setIsUpdatingProduct] = useState<boolean>(false);
   const { data: products, isLoading, error } = useGetProduct();
   const deleteProductMutation = useDeleteProduct();
 
   const handleDeleteProduct = (id: number) => {
     deleteProductMutation.mutate(id);
+    setDeleProductId(id);
   };
 
   const handleViewProduct = (id: number) => {
@@ -42,9 +49,19 @@ export const TableProducts = () => {
     setIsModalOpen(true);
   };
 
-  const handleCloseModal = () => {
+  const handleUpdateProduct = (id: number) => {
+    setUpdatingProductId(id);
+    setIsUpdatingProduct(true);
+  };
+
+  const handleCloseModalInfo = () => {
     setIsModalOpen(false);
     setSelectedProductId(null);
+  };
+
+  const handleCloseModalUpdate = () => {
+    setIsUpdatingProduct(false);
+    setUpdatingProductId(null);
   };
 
   if (isLoading) {
@@ -89,7 +106,8 @@ export const TableProducts = () => {
                   <TableHead>Жиры</TableHead>
                   <TableHead>Углеводы</TableHead>
                   <TableHead>Подробнее</TableHead>
-                  <TableHead className="text-right">Действия</TableHead>
+                  <TableHead>Удалить</TableHead>
+                  <TableHead>Обновить</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -145,7 +163,10 @@ export const TableProducts = () => {
                           <Button
                             variant="outline"
                             size="icon"
-                            disabled={deleteProductMutation.isPending}
+                            disabled={
+                              deleteProductMutation.isPending ||
+                              deleProductId === product.id
+                            }
                             className="text-destructive hover:text-destructive hover:bg-destructive/10"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -154,7 +175,8 @@ export const TableProducts = () => {
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>
-                              Вы уверены, что хотите удалить этот продукт?
+                              Вы уверены, что хотите удалить этот продукт{" "}
+                              {product.name}?
                             </AlertDialogTitle>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
@@ -169,6 +191,15 @@ export const TableProducts = () => {
                         </AlertDialogContent>
                       </AlertDialog>
                     </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handleUpdateProduct(product.id)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -180,7 +211,12 @@ export const TableProducts = () => {
       <ProductDetailsModal
         productId={selectedProductId}
         isOpen={isModalOpen}
-        onClose={handleCloseModal}
+        onClose={handleCloseModalInfo}
+      />
+      <UpdateProduct
+        productId={updatingProductId || 0}
+        isOpen={isUpdatingProduct}
+        onClose={handleCloseModalUpdate}
       />
     </div>
   );

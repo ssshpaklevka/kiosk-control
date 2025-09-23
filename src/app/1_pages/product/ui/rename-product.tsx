@@ -17,7 +17,7 @@ import { TYPE_PRODUCT_ENUM } from "../enum/product-type.enum";
 import {
   useGetGroupOriginal,
   useGetProductOriginal,
-  useUpdateProduct,
+  useUpdateProductSet,
 } from "../hooks/use-product";
 
 interface FileValidationError {
@@ -31,7 +31,9 @@ export const RenameProduct = () => {
   const [productName, setProductName] = useState<string>("");
   const [productDescription, setProductDescription] = useState<string>("");
   const [productPrice, setProductPrice] = useState<string>("");
-  const [productType, setProductType] = useState<string>("");
+  const [productType, setProductType] = useState<TYPE_PRODUCT_ENUM>(
+    TYPE_PRODUCT_ENUM.TYPE
+  );
   const [productWeight, setProductWeight] = useState<string>("");
   // State для работы с файлами
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -64,24 +66,24 @@ export const RenameProduct = () => {
   };
   const { data: groupOriginal } = useGetGroupOriginal();
   const { data: productOriginal } = useGetProductOriginal(selectedGroup);
-  const updateProduct = useUpdateProduct();
+  const updateProductSet = useUpdateProductSet();
 
   // Сброс формы после успешного обновления
   React.useEffect(() => {
-    if (updateProduct.isSuccess) {
+    if (updateProductSet.isSuccess) {
       setSelectedGroup("");
       setSelectedProduct("");
       setProductName("");
       setProductDescription("");
       setProductPrice("");
       setProductWeight("");
-      setProductType("");
+      setProductType(TYPE_PRODUCT_ENUM.TYPE);
       setSelectedFile(null);
       setPreviewUrl(null);
       setIsValidFile(false);
       setValidationError(null);
     }
-  }, [updateProduct.isSuccess]);
+  }, [updateProductSet.isSuccess]);
 
   // Функции для работы с файлами
   const validateFile = async (
@@ -160,7 +162,7 @@ export const RenameProduct = () => {
     fileInputRef.current?.click();
   };
   const handleProductTypeSelect = (value: string) => {
-    setProductType(value);
+    setProductType(value as TYPE_PRODUCT_ENUM);
   };
   const handleUpdateProduct = () => {
     const price = parseFloat(productPrice);
@@ -178,9 +180,10 @@ export const RenameProduct = () => {
       !isNaN(weight) &&
       weight > 0
     ) {
-      updateProduct.mutate({
+      updateProductSet.mutate({
         idProduct: Number(selectedProduct),
         productData: {
+          // id: Number(selectedProduct),
           name: productName,
           description: productDescription,
           price: price,
@@ -347,9 +350,9 @@ export const RenameProduct = () => {
             />
           </div>
 
-          {updateProduct.error && (
+          {updateProductSet.error && (
             <div className="text-sm text-red-500">
-              Ошибка: {updateProduct.error.message}
+              Ошибка: {updateProductSet.error.message}
             </div>
           )}
 
@@ -366,10 +369,10 @@ export const RenameProduct = () => {
               isNaN(parseFloat(productWeight)) ||
               parseFloat(productWeight) <= 0 ||
               !productType ||
-              updateProduct.isPending
+              updateProductSet.isPending
             }
           >
-            {updateProduct.isPending ? "Обновление..." : "Обновить"}
+            {updateProductSet.isPending ? "Обновление..." : "Обновить"}
           </Button>
         </div>
 

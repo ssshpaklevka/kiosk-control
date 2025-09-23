@@ -8,6 +8,7 @@ import {
   ProductOriginal,
   ProductType,
   UpdateProduct,
+  UpdateProductSet,
 } from "../types/product.dto";
 
 export const useGetProduct = () => {
@@ -53,6 +54,26 @@ export const useUpdateProduct = () => {
       productsApi.updateProduct(productData, idProduct),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["product-main"] });
+      toast.success("Продукт успешно обновлен!");
+    },
+    onError: (error) => {
+      const message = error.message || "Ошибка при обновлении продукта";
+      toast.error(message);
+    },
+  });
+};
+
+export const useUpdateProductSet = () => {
+  const queryClient = useQueryClient();
+  return useMutation<
+    ProductOriginal,
+    Error,
+    { productData: UpdateProductSet; idProduct: number }
+  >({
+    mutationFn: ({ productData, idProduct }) =>
+      productsApi.updateProductSet(productData, idProduct),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["product-original"] });
       toast.success("Продукт успешно обновлен!");
     },
     onError: (error) => {
