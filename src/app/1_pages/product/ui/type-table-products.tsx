@@ -1,5 +1,6 @@
-import { Trash2 } from "lucide-react";
+import { CameraOff, Search, Trash2 } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,6 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../../../components/ui/card";
+import { Input } from "../../../../components/ui/input";
 import {
   Table,
   TableBody,
@@ -30,7 +32,10 @@ import { useDeleteTypes, useGetTypes } from "../hooks/use-type";
 export const TypeTableProducts = () => {
   const { data: types, isLoading, error } = useGetTypes();
   const deleteTypesMutation = useDeleteTypes();
-
+  const [searchTerm, setSearchTerm] = useState("");
+  const filteredTypes = types?.filter((type) =>
+    type.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
   const handleDeleteTypes = (id: number) => {
     deleteTypesMutation.mutate(id);
   };
@@ -39,6 +44,15 @@ export const TypeTableProducts = () => {
     <Card>
       <CardHeader>
         <CardTitle>Типы продуктов</CardTitle>
+        <div className="relative mt-4">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            placeholder="Поиск типа продукта..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
       </CardHeader>
       <CardContent>
         <Table>
@@ -50,15 +64,21 @@ export const TypeTableProducts = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {types?.map((type) => (
+            {filteredTypes?.map((type) => (
               <TableRow key={type.id}>
                 <TableCell>
-                  <Image
-                    src={type.image}
-                    alt={type.name}
-                    width={100}
-                    height={100}
-                  />
+                  {type.image ? (
+                    <Image
+                      src={type.image}
+                      alt={type.name}
+                      width={100}
+                      height={100}
+                    />
+                  ) : (
+                    <Card className="size-30 flex justify-center items-center border border-dashed border-muted-foreground/25">
+                      <CameraOff className="w-14 h-14 text-muted-foreground " />
+                    </Card>
+                  )}
                 </TableCell>
                 <TableCell>{type.name}</TableCell>
                 <TableCell>

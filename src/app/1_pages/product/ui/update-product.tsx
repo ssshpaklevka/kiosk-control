@@ -38,11 +38,6 @@ import {
   useUpdateProduct,
 } from "../hooks/use-product";
 
-interface FileValidationError {
-  type: "format" | "dimensions" | "size";
-  message: string;
-}
-
 interface UpdateProductProps {
   productId: number;
   isOpen: boolean;
@@ -77,9 +72,6 @@ export const UpdateProduct = ({
   const [variant, setVariant] = useState<VARIANT_PRODUCT_ENUM>(
     VARIANT_PRODUCT_ENUM.DEFAULT
   );
-  const [validationError, setValidationError] =
-    useState<FileValidationError | null>(null);
-  const [isValidFile, setIsValidFile] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -91,6 +83,13 @@ export const UpdateProduct = ({
   const { data: types } = useGetProductType(typesEnabled);
   const { data: ingredients } = useGetProductIngredients(ingredientsEnabled);
   const updateProductMutation = useUpdateProduct();
+
+  // Закрываем модалку только после успешного обновления
+  useEffect(() => {
+    if (updateProductMutation.isSuccess) {
+      onClose();
+    }
+  }, [updateProductMutation.isSuccess, onClose]);
 
   // Заполняем поля данными продукта при загрузке
   useEffect(() => {
@@ -169,58 +168,10 @@ export const UpdateProduct = ({
     }
   }, [product?.ingredients, ingredients]);
 
-  const validateFile = async (
-    file: File
-  ): Promise<FileValidationError | null> => {
-    // Проверка формата
-    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-    if (!allowedTypes.includes(file.type)) {
-      return {
-        type: "format",
-        message: "Поддерживаются только файлы формата JPEG, PNG и WebP",
-      };
-    }
-
-    // Проверка размера файла (максимум 10MB)
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    if (file.size > maxSize) {
-      return {
-        type: "size",
-        message: `Размер файла слишком большой: ${(file.size / 1024 / 1024).toFixed(2)} MB. Максимум: 10 MB`,
-      };
-    }
-
-    // Для изображений проверяем разрешение
-    return new Promise((resolve) => {
-      const img = new window.Image();
-      img.onload = () => {
-        // Минимальное разрешение для качественного фото продукта
-        if (img.width < 1000 || img.height < 1000) {
-          resolve({
-            type: "dimensions",
-            message: `Изображение слишком маленькое: ${img.width}x${img.height}px. Минимум: 1000x1000px`,
-          });
-          return;
-        }
-
-        resolve(null);
-      };
-      img.onerror = () => {
-        resolve({
-          type: "format",
-          message: "Ошибка загрузки изображения",
-        });
-      };
-      img.src = URL.createObjectURL(file);
-    });
-  };
-
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
-    setValidationError(null);
-    setIsValidFile(false);
     setPreviewUrl(null);
 
     if (!file) {
@@ -229,15 +180,6 @@ export const UpdateProduct = ({
     }
 
     setSelectedFile(file);
-
-    const error = await validateFile(file);
-    if (error) {
-      setValidationError(error);
-      return;
-    }
-
-    // Если валидация прошла успешно
-    setIsValidFile(true);
     setPreviewUrl(URL.createObjectURL(file));
   };
 
@@ -253,14 +195,16 @@ export const UpdateProduct = ({
       description: description.trim() || product.information?.description || "",
       composition: composition.trim() || product.information?.composition || "",
       calories: calories
-        ? parseFloat(calories)
+        ? Math.round(parseFloat(calories) * 100) / 100
         : product.information?.calories || 0,
       proteins: proteins
-        ? parseFloat(proteins)
+        ? Math.round(parseFloat(proteins) * 100) / 100
         : product.information?.proteins || 0,
-      fats: fats ? parseFloat(fats) : product.information?.fats || 0,
+      fats: fats
+        ? Math.round(parseFloat(fats) * 100) / 100
+        : product.information?.fats || 0,
       carbohydrates: carbohydrates
-        ? parseFloat(carbohydrates)
+        ? Math.round(parseFloat(carbohydrates) * 100) / 100
         : product.information?.carbohydrates || 0,
       color: normalizeToHex(color.trim() || product.color || "#000000"),
       groups: selectedGroups
@@ -284,8 +228,6 @@ export const UpdateProduct = ({
       idProduct: productId,
       productData: updateData,
     });
-
-    onClose();
   };
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -318,11 +260,47 @@ export const UpdateProduct = ({
               <Input
                 ref={fileInputRef}
                 type="file"
-                accept="image/jpeg,image/jpg,image/png,image/webp"
+                accept="image/png,image/webp"
                 onChange={handleFileChange}
                 className="hidden"
               />
             </div>
+
+            {/* Дополнительный input для выбора файла под изображением */}
+            <div className="pt-4">
+              <div className="flex flex-col gap-2">
+                <Label>Выбрать изображение</Label>
+                <Input
+                  type="file"
+                  accept="image/png,image/webp"
+                  onChange={handleFileChange}
+                  className="cursor-pointer"
+                />
+                <p className="text-sm text-muted-foreground">
+                  Поддерживаются только PNG и WebP форматы, до 10MB
+                </p>
+              </div>
+            </div>
+
+            {/* Превью новой фотки */}
+            {previewUrl && (
+              <div className="pt-4">
+                <Label>Предпросмотр нового изображения</Label>
+                <div className="mt-2">
+                  <Card
+                    style={{
+                      backgroundImage: `url(${previewUrl})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }}
+                    className="size-[250px] mx-auto"
+                  />
+                </div>
+                <p className="text-sm text-green-600 dark:text-green-400 mt-2 text-center">
+                  Новое изображение выбрано
+                </p>
+              </div>
+            )}
 
             <div className="flex flex-col gap-6">
               <Card>
@@ -559,6 +537,16 @@ export const UpdateProduct = ({
               </Card>
             </div>
 
+            {/* Сообщение об ошибке */}
+            {updateProductMutation.isError && (
+              <div className="p-3 border border-red-500 rounded-md bg-red-50 dark:bg-red-950/20">
+                <p className="text-sm text-red-700 dark:text-red-400">
+                  Ошибка при сохранении:{" "}
+                  {updateProductMutation.error?.message || "Неизвестная ошибка"}
+                </p>
+              </div>
+            )}
+
             {/* Кнопка сохранения */}
             <div className="flex justify-end pt-4">
               <Button
@@ -568,7 +556,9 @@ export const UpdateProduct = ({
               >
                 {updateProductMutation.isPending
                   ? "Сохранение..."
-                  : "Сохранить изменения"}
+                  : updateProductMutation.isSuccess
+                    ? "Сохранено!"
+                    : "Сохранить изменения"}
               </Button>
             </div>
           </div>

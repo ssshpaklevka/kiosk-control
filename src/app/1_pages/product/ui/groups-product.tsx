@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import {
   AlertCircle,
   Camera,
+  CameraOff,
   CheckCircle,
   Edit2,
   Image,
@@ -403,10 +404,16 @@ export const GroupsProduct = () => {
                       <p className="text-lg">
                         <span className="font-semibold">Изображение: </span>
                       </p>
-                      <Card
-                        style={{ backgroundImage: `url(${group.image})` }}
-                        className="bg-cover bg-center size-[250px]"
-                      ></Card>
+                      {group.image ? (
+                        <Card
+                          style={{ backgroundImage: `url(${group.image})` }}
+                          className="bg-cover bg-center size-[250px]"
+                        ></Card>
+                      ) : (
+                        <Card className="size-[250px] flex justify-center items-center border border-dashed border-muted-foreground/25">
+                          <CameraOff className="w-14 h-14 text-muted-foreground " />
+                        </Card>
+                      )}
                     </div>
                   </div>
                   <div className="flex gap-2">

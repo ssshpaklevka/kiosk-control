@@ -79,13 +79,49 @@ export const CreatedProduct = () => {
       return false;
     }
 
+    if (!formData.composition.trim()) {
+      toast.error("Состав продукта обязателен");
+      return false;
+    }
+
     if (formData.groups.length === 0) {
       toast.error("Необходимо выбрать хотя бы одну группу");
       return false;
     }
 
+    if (formData.subGroups.length === 0) {
+      toast.error("Необходимо выбрать хотя бы одну подгруппу");
+      return false;
+    }
+
     if (formData.ingredients.length === 0) {
       toast.error("Необходимо выбрать хотя бы один ингредиент");
+      return false;
+    }
+
+    if (formData.type.length === 0) {
+      toast.error("Необходимо выбрать хотя бы один тип продукта");
+      return false;
+    }
+
+    // Проверка числовых значений
+    if (formData.calories <= 0) {
+      toast.error("Калории должны быть больше 0");
+      return false;
+    }
+
+    if (formData.proteins < 0) {
+      toast.error("Белки не могут быть отрицательными");
+      return false;
+    }
+
+    if (formData.fats < 0) {
+      toast.error("Жиры не могут быть отрицательными");
+      return false;
+    }
+
+    if (formData.carbohydrates < 0) {
+      toast.error("Углеводы не могут быть отрицательными");
       return false;
     }
 
@@ -243,7 +279,7 @@ export const CreatedProduct = () => {
         <div className="grid grid-cols-2 gap-14">
           <div className="flex flex-col gap-4 items-center">
             <h3 className="text-lg w-full text-left font-medium">
-              Фото продукта
+              Фото продукта <span className="text-red-500">*</span>
             </h3>
             <Card
               className="relative w-90 h-80 bg-muted/30 border-2 border-dashed border-muted-foreground/25 hover:border-muted-foreground/50 transition-colors cursor-pointer group overflow-hidden"
@@ -360,7 +396,9 @@ export const CreatedProduct = () => {
           <h3 className="text-lg font-medium">Информация о продукте</h3>
           <div className="space-y-4">
             <div className="flex flex-col gap-2">
-              <p className="text-sm font-medium  block">Название продукта</p>
+              <p className="text-sm font-medium  block">
+                Название продукта <span className="text-red-500">*</span>
+              </p>
               <Input
                 placeholder="Введите название продукта"
                 value={formData.name}
@@ -371,7 +409,9 @@ export const CreatedProduct = () => {
             </div>
 
             <div className="flex flex-col gap-2">
-              <p className="text-sm font-medium  block">Описание</p>
+              <p className="text-sm font-medium  block">
+                Описание <span className="text-red-500">*</span>
+              </p>
               <Textarea
                 className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder="Введите описание продукта"
@@ -429,7 +469,9 @@ export const CreatedProduct = () => {
 
             <div className="grid grid-cols-4 gap-4">
               <div className="flex flex-col gap-2">
-                <p className="text-sm font-medium  block">Калории</p>
+                <p className="text-sm font-medium  block">
+                  Калории <span className="text-red-500">*</span>
+                </p>
                 <Input
                   type="number"
                   placeholder="0.00"
@@ -437,7 +479,8 @@ export const CreatedProduct = () => {
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      calories: Number(e.target.value) || 0,
+                      calories:
+                        Math.round((Number(e.target.value) || 0) * 100) / 100,
                     }))
                   }
                 />
@@ -451,7 +494,8 @@ export const CreatedProduct = () => {
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      proteins: Number(e.target.value) || 0,
+                      proteins:
+                        Math.round((Number(e.target.value) || 0) * 100) / 100,
                     }))
                   }
                 />
@@ -465,7 +509,8 @@ export const CreatedProduct = () => {
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      fats: Number(e.target.value) || 0,
+                      fats:
+                        Math.round((Number(e.target.value) || 0) * 100) / 100,
                     }))
                   }
                 />
@@ -479,7 +524,8 @@ export const CreatedProduct = () => {
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      carbohydrates: Number(e.target.value) || 0,
+                      carbohydrates:
+                        Math.round((Number(e.target.value) || 0) * 100) / 100,
                     }))
                   }
                 />
@@ -487,7 +533,9 @@ export const CreatedProduct = () => {
             </div>
 
             <div className="flex flex-col gap-2">
-              <p>Ингредиенты</p>
+              <p>
+                Ингредиенты <span className="text-red-500">*</span>
+              </p>
               <MultiSelect
                 maxCount={4}
                 options={
@@ -539,7 +587,9 @@ export const CreatedProduct = () => {
             </div>
 
             <div className="flex flex-col gap-2">
-              <p>Состав продукта</p>
+              <p>
+                Состав продукта <span className="text-red-500">*</span>
+              </p>
               <Textarea
                 value={formData.composition}
                 onChange={(e) =>
@@ -552,7 +602,9 @@ export const CreatedProduct = () => {
               />
             </div>
             <div className="flex flex-col gap-2">
-              <p>Тип продукта</p>
+              <p>
+                Тип продукта <span className="text-red-500">*</span>
+              </p>
               <MultiSelect
                 maxCount={4}
                 options={
@@ -578,7 +630,9 @@ export const CreatedProduct = () => {
               />
             </div>
             <div className="flex flex-col gap-2">
-              <p>Группы продукта</p>
+              <p>
+                Группы продукта <span className="text-red-500">*</span>
+              </p>
               <MultiSelect
                 maxCount={4}
                 options={
@@ -603,7 +657,9 @@ export const CreatedProduct = () => {
               />
             </div>
             <div className="flex flex-col gap-2">
-              <p>Подгруппы продукта</p>
+              <p>
+                Подгруппы продукта <span className="text-red-500">*</span>
+              </p>
               <MultiSelect
                 maxCount={4}
                 options={
@@ -630,7 +686,18 @@ export const CreatedProduct = () => {
 
             <Button
               className="w-full"
-              disabled={!isValidFile || isSubmitting}
+              disabled={
+                !isValidFile ||
+                isSubmitting ||
+                !formData.name.trim() ||
+                !formData.description.trim() ||
+                !formData.composition.trim() ||
+                formData.groups.length === 0 ||
+                formData.subGroups.length === 0 ||
+                formData.ingredients.length === 0 ||
+                formData.type.length === 0 ||
+                formData.calories <= 0
+              }
               onClick={handleSubmit}
             >
               {isSubmitting ? "Создание продукта..." : "Сохранить продукт"}

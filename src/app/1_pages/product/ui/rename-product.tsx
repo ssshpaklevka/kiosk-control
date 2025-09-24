@@ -165,8 +165,8 @@ export const RenameProduct = () => {
     setProductType(value as TYPE_PRODUCT_ENUM);
   };
   const handleUpdateProduct = () => {
-    const price = parseFloat(productPrice);
-    const weight = parseFloat(productWeight);
+    const price = Math.round(parseFloat(productPrice) * 100) / 100;
+    const weight = Math.round(parseFloat(productWeight) * 100) / 100;
 
     if (
       selectedProduct &&
@@ -178,7 +178,9 @@ export const RenameProduct = () => {
       productType &&
       productWeight.trim() &&
       !isNaN(weight) &&
-      weight > 0
+      weight > 0 &&
+      selectedFile &&
+      isValidFile
     ) {
       updateProductSet.mutate({
         idProduct: Number(selectedProduct),
@@ -187,7 +189,7 @@ export const RenameProduct = () => {
           name: productName,
           description: productDescription,
           price: price,
-          image: selectedFile || undefined, // Файл необязательный
+          image: selectedFile,
           type: productType,
           weight: weight,
         },
@@ -206,7 +208,7 @@ export const RenameProduct = () => {
         <div className="flex flex-col justify-center gap-4">
           <div className="flex flex-col gap-2">
             <p>Выберите группу, в которой хотите найти продукт</p>
-            <Select onValueChange={handleGroupSelect}>
+            <Select value={selectedGroup} onValueChange={handleGroupSelect}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Выберите группу, в которой хотите найти продукт" />
               </SelectTrigger>
@@ -227,7 +229,7 @@ export const RenameProduct = () => {
 
           <div className="flex flex-col gap-2">
             <p>Выберите продукт, который хотите переименовать</p>
-            <Select onValueChange={handleProductSelect}>
+            <Select value={selectedProduct} onValueChange={handleProductSelect}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Выберите продукт, который хотите переименовать" />
               </SelectTrigger>
@@ -249,7 +251,7 @@ export const RenameProduct = () => {
           <div className="flex flex-col gap-2">
             <p>
               Введите новое название продукта, которое будет отображаться в
-              каталоге
+              каталоге <span className="text-red-500">*</span>
             </p>
             <Input
               placeholder={
@@ -278,7 +280,10 @@ export const RenameProduct = () => {
           </div>
 
           <div className="flex flex-col gap-2">
-            <p>Введите новое описание продукта</p>
+            <p>
+              Введите новое описание продукта{" "}
+              <span className="text-red-500">*</span>
+            </p>
             <Textarea
               disabled={!selectedProduct}
               placeholder={
@@ -294,7 +299,10 @@ export const RenameProduct = () => {
           </div>
 
           <div className="flex flex-col gap-2">
-            <p>Введите новую цену продукта</p>
+            <p>
+              Введите новую цену продукта{" "}
+              <span className="text-red-500">*</span>
+            </p>
             <Input
               type="number"
               step="0.01"
@@ -313,8 +321,10 @@ export const RenameProduct = () => {
           </div>
 
           <div className="flex flex-col gap-2">
-            <p>Тип продукта</p>
-            <Select onValueChange={handleProductTypeSelect}>
+            <p>
+              Тип продукта <span className="text-red-500">*</span>
+            </p>
+            <Select value={productType} onValueChange={handleProductTypeSelect}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Выберите размер карточки" />
               </SelectTrigger>
@@ -332,7 +342,10 @@ export const RenameProduct = () => {
           </div>
 
           <div className="flex flex-col gap-2">
-            <p>Введите новую массу продукта</p>
+            <p>
+              Введите новую массу продукта{" "}
+              <span className="text-red-500">*</span>
+            </p>
             <Input
               type="number"
               step="0.01"
@@ -369,6 +382,8 @@ export const RenameProduct = () => {
               isNaN(parseFloat(productWeight)) ||
               parseFloat(productWeight) <= 0 ||
               !productType ||
+              !selectedFile ||
+              !isValidFile ||
               updateProductSet.isPending
             }
           >
@@ -378,7 +393,9 @@ export const RenameProduct = () => {
 
         {/* Правая колонка - фото */}
         <div className="flex flex-col items-center gap-4">
-          <h3 className="text-lg font-medium text-left">Фото продукта</h3>
+          <h3 className="text-lg font-medium text-left">
+            Фото продукта <span className="text-red-500">*</span>
+          </h3>
 
           <Card
             className="relative w-[356px] h-80 bg-muted/30 border-2 border-dashed border-muted-foreground/25 hover:border-muted-foreground/50 transition-colors cursor-pointer group overflow-hidden"

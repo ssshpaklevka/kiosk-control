@@ -166,7 +166,9 @@ export const ProductDetailsModal = ({
           <Separator />
 
           {/* Группы */}
-          {product.groups && product.groups.length > 0 && (
+          {product.groups &&
+          product.groups.length &&
+          product.groups[0].name !== null ? (
             <Card>
               <CardContent className="p-4">
                 <h3 className="font-semibold mb-3">Группы</h3>
@@ -183,6 +185,12 @@ export const ProductDetailsModal = ({
                 </div>
               </CardContent>
             </Card>
+          ) : (
+            <div>
+              <p className="text-sm text-muted-foreground">
+                Группы отсутствуют
+              </p>
+            </div>
           )}
 
           <Card>

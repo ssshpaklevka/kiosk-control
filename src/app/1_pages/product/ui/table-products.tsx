@@ -20,8 +20,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { CameraOff, Eye, Pencil, Search, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { Input } from "../../../../components/ui/input";
 import { useDeleteProduct, useGetProduct } from "../hooks/use-product";
 import { ProductDetailsModal } from "./product-details-modal";
 import { UpdateProduct } from "./update-product";
@@ -36,6 +37,7 @@ export const TableProducts = () => {
     null
   );
   const [isUpdatingProduct, setIsUpdatingProduct] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const { data: products, isLoading, error } = useGetProduct();
   const deleteProductMutation = useDeleteProduct();
 
@@ -63,6 +65,10 @@ export const TableProducts = () => {
     setIsUpdatingProduct(false);
     setUpdatingProductId(null);
   };
+
+  const filteredProducts = products?.filter((product) =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (isLoading) {
     return (
@@ -93,6 +99,15 @@ export const TableProducts = () => {
       <Card className="flex-1 flex flex-col">
         <CardHeader>
           <CardTitle>Список продуктов</CardTitle>
+          <div className="relative mt-4">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Поиск продукта..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
         </CardHeader>
         <CardContent className="flex-1 overflow-hidden">
           <div className="h-full overflow-auto">
@@ -111,19 +126,28 @@ export const TableProducts = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {products.map((product) => (
-                  <TableRow key={product.id} className="group">
+                {filteredProducts?.map((product) => (
+                  <TableRow
+                    key={`${product.id}-${product.image}`}
+                    className="group"
+                  >
                     <TableCell className="w-16">
                       <div className="cursor-pointer">
                         <div className="">
-                          <Card
-                            style={{
-                              backgroundImage: `url(${product.image})`,
-                              backgroundSize: "cover",
-                              backgroundPosition: "center",
-                            }}
-                            className="size-30"
-                          ></Card>
+                          {product.image ? (
+                            <Card
+                              style={{
+                                backgroundImage: `url(${product.image})`,
+                                backgroundSize: "cover",
+                                backgroundPosition: "center",
+                              }}
+                              className="size-30"
+                            ></Card>
+                          ) : (
+                            <Card className="size-30 flex justify-center items-center border-2 border-dashed border-muted-foreground/25">
+                              <CameraOff className="w-14 h-14 text-muted-foreground " />
+                            </Card>
+                          )}
                         </div>
                       </div>
                     </TableCell>

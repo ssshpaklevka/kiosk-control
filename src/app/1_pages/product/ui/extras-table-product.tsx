@@ -1,5 +1,6 @@
-import { Trash2 } from "lucide-react";
+import { CameraOff, Search, Trash2 } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,6 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../../../components/ui/card";
+import { Input } from "../../../../components/ui/input";
 import {
   Table,
   TableBody,
@@ -30,7 +32,10 @@ import { useDeleteExtras, useGetExtras } from "../hooks/use-extras";
 export const ExtrasTableProducts = () => {
   const { data: extras, isLoading, error } = useGetExtras();
   const deleteExtrasMutation = useDeleteExtras();
-
+  const [searchTerm, setSearchTerm] = useState("");
+  const filteredExtras = extras?.filter((extra) =>
+    extra.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
   const handleDeleteExtras = (id: number) => {
     deleteExtrasMutation.mutate(id);
   };
@@ -39,6 +44,15 @@ export const ExtrasTableProducts = () => {
     <Card>
       <CardHeader>
         <CardTitle>Дополнительные продукты</CardTitle>
+        <div className="relative mt-4">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            placeholder="Поиск дополнительного продукта..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
       </CardHeader>
       <CardContent>
         <Table>
@@ -50,15 +64,21 @@ export const ExtrasTableProducts = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {extras?.map((extra) => (
+            {filteredExtras?.map((extra) => (
               <TableRow key={extra.id}>
                 <TableCell>
-                  <Image
-                    src={extra.image}
-                    alt={extra.name}
-                    width={100}
-                    height={100}
-                  />
+                  {extra.image ? (
+                    <Image
+                      src={extra.image}
+                      alt={extra.name}
+                      width={100}
+                      height={100}
+                    />
+                  ) : (
+                    <Card className="size-30 flex justify-center items-center border border-dashed border-muted-foreground/25">
+                      <CameraOff className="w-14 h-14 text-muted-foreground " />
+                    </Card>
+                  )}
                 </TableCell>
                 <TableCell>{extra.name}</TableCell>
                 <TableCell>

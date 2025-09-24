@@ -42,7 +42,7 @@ export interface UpdateProduct {
 export interface UpdateProductSet {
   // id: number;
   name: string;
-  image?: File;
+  image: File;
   description: string;
   price: number;
   weight: number;

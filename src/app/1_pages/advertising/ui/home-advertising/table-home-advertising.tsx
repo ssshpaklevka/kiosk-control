@@ -1,4 +1,10 @@
-import { AlertCircle, CheckCircle, Pencil, Upload } from "lucide-react";
+import {
+  AlertCircle,
+  CameraOff,
+  CheckCircle,
+  Pencil,
+  Upload,
+} from "lucide-react";
 import Image from "next/image";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
@@ -280,22 +286,28 @@ export const TableHomeAdvertising = () => {
                   return (
                     <TableRow key={banner.id}>
                       <TableCell>
-                        {banner.type === "video" ? (
-                          <video
-                            src={imageUrl}
-                            className="size-[100px] object-cover rounded"
-                            controls
-                            key={`video-${banner.id}-${isUpdated ? Date.now() : "original"}`}
-                          />
+                        {banner.url ? (
+                          banner.type === "video" ? (
+                            <video
+                              src={imageUrl}
+                              className="size-[100px] object-cover rounded"
+                              controls
+                              key={`video-${banner.id}-${isUpdated ? Date.now() : "original"}`}
+                            />
+                          ) : (
+                            <Image
+                              src={imageUrl}
+                              alt={banner.name}
+                              width={100}
+                              height={100}
+                              key={`image-${banner.id}-${isUpdated ? Date.now() : "original"}`}
+                              unoptimized={isUpdated} // Отключаем оптимизацию только для обновленных
+                            />
+                          )
                         ) : (
-                          <Image
-                            src={imageUrl}
-                            alt={banner.name}
-                            width={100}
-                            height={100}
-                            key={`image-${banner.id}-${isUpdated ? Date.now() : "original"}`}
-                            unoptimized={isUpdated} // Отключаем оптимизацию только для обновленных
-                          />
+                          <Card className="size-[100px] flex justify-center items-center border border-dashed border-muted-foreground/25">
+                            <CameraOff className="w-14 h-14 text-muted-foreground " />
+                          </Card>
                         )}
                       </TableCell>
                       <TableCell>{banner.name}</TableCell>
