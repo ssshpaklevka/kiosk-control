@@ -60,6 +60,14 @@ export const CreatedProduct = () => {
     color: "#000000", // Дефолтный HEX цвет
   });
 
+  // Состояние для отслеживания того, что пользователь ввел значения
+  const [userInputs, setUserInputs] = useState({
+    calories: false,
+    proteins: false,
+    fats: false,
+    carbohydrates: false,
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Функция валидации формы
@@ -105,8 +113,8 @@ export const CreatedProduct = () => {
     }
 
     // Проверка числовых значений
-    if (formData.calories <= 0) {
-      toast.error("Калории должны быть больше 0");
+    if (!userInputs.calories || formData.calories < 0) {
+      toast.error("Необходимо указать калории (можно 0)");
       return false;
     }
 
@@ -172,6 +180,12 @@ export const CreatedProduct = () => {
         fats: 0,
         carbohydrates: 0,
         color: "#000000", // Дефолтный HEX цвет
+      });
+      setUserInputs({
+        calories: false,
+        proteins: false,
+        fats: false,
+        carbohydrates: false,
       });
       setSelectedFile(null);
       setPreviewUrl(null);
@@ -475,14 +489,25 @@ export const CreatedProduct = () => {
                 <Input
                   type="number"
                   placeholder="0.00"
-                  value={formData.calories || ""}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      calories:
-                        Math.round((Number(e.target.value) || 0) * 100) / 100,
-                    }))
+                  value={
+                    formData.calories === 0 && !userInputs.calories
+                      ? ""
+                      : formData.calories
                   }
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "") {
+                      setFormData((prev) => ({ ...prev, calories: 0 }));
+                      setUserInputs((prev) => ({ ...prev, calories: false }));
+                    } else {
+                      const numericValue = Number(value);
+                      setFormData((prev) => ({
+                        ...prev,
+                        calories: Math.round(numericValue * 100) / 100,
+                      }));
+                      setUserInputs((prev) => ({ ...prev, calories: true }));
+                    }
+                  }}
                 />
               </div>
               <div className="flex flex-col gap-2">
@@ -490,14 +515,25 @@ export const CreatedProduct = () => {
                 <Input
                   type="number"
                   placeholder="0.00"
-                  value={formData.proteins || ""}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      proteins:
-                        Math.round((Number(e.target.value) || 0) * 100) / 100,
-                    }))
+                  value={
+                    formData.proteins === 0 && !userInputs.proteins
+                      ? ""
+                      : formData.proteins
                   }
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "") {
+                      setFormData((prev) => ({ ...prev, proteins: 0 }));
+                      setUserInputs((prev) => ({ ...prev, proteins: false }));
+                    } else {
+                      const numericValue = Number(value);
+                      setFormData((prev) => ({
+                        ...prev,
+                        proteins: Math.round(numericValue * 100) / 100,
+                      }));
+                      setUserInputs((prev) => ({ ...prev, proteins: true }));
+                    }
+                  }}
                 />
               </div>
               <div className="flex flex-col gap-2">
@@ -505,14 +541,23 @@ export const CreatedProduct = () => {
                 <Input
                   type="number"
                   placeholder="0.00"
-                  value={formData.fats || ""}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      fats:
-                        Math.round((Number(e.target.value) || 0) * 100) / 100,
-                    }))
+                  value={
+                    formData.fats === 0 && !userInputs.fats ? "" : formData.fats
                   }
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "") {
+                      setFormData((prev) => ({ ...prev, fats: 0 }));
+                      setUserInputs((prev) => ({ ...prev, fats: false }));
+                    } else {
+                      const numericValue = Number(value);
+                      setFormData((prev) => ({
+                        ...prev,
+                        fats: Math.round(numericValue * 100) / 100,
+                      }));
+                      setUserInputs((prev) => ({ ...prev, fats: true }));
+                    }
+                  }}
                 />
               </div>
               <div className="flex flex-col gap-2">
@@ -520,14 +565,31 @@ export const CreatedProduct = () => {
                 <Input
                   type="number"
                   placeholder="0.00"
-                  value={formData.carbohydrates || ""}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      carbohydrates:
-                        Math.round((Number(e.target.value) || 0) * 100) / 100,
-                    }))
+                  value={
+                    formData.carbohydrates === 0 && !userInputs.carbohydrates
+                      ? ""
+                      : formData.carbohydrates
                   }
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "") {
+                      setFormData((prev) => ({ ...prev, carbohydrates: 0 }));
+                      setUserInputs((prev) => ({
+                        ...prev,
+                        carbohydrates: false,
+                      }));
+                    } else {
+                      const numericValue = Number(value);
+                      setFormData((prev) => ({
+                        ...prev,
+                        carbohydrates: Math.round(numericValue * 100) / 100,
+                      }));
+                      setUserInputs((prev) => ({
+                        ...prev,
+                        carbohydrates: true,
+                      }));
+                    }
+                  }}
                 />
               </div>
             </div>
@@ -696,7 +758,8 @@ export const CreatedProduct = () => {
                 formData.subGroups.length === 0 ||
                 formData.ingredients.length === 0 ||
                 formData.type.length === 0 ||
-                formData.calories <= 0
+                !userInputs.calories ||
+                formData.calories < 0
               }
               onClick={handleSubmit}
             >
