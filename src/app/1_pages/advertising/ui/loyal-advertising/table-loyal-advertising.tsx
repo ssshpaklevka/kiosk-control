@@ -62,6 +62,7 @@ export const TableLoyalAdvertising = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [dialogBannerId, setDialogBannerId] = useState<number | null>(null);
 
   // Функция валидации файлов (аналогично HomeAdvertising)
   const validateFile = async (
@@ -218,6 +219,7 @@ export const TableLoyalAdvertising = () => {
       setValidationError(null);
       setEditingBanner(null);
       setIsDialogOpen(false); // Закрываем модалку после успешного обновления
+      setDialogBannerId(null);
     } catch (error) {
       console.error("Ошибка обновления баннера:", error);
     } finally {
@@ -226,12 +228,19 @@ export const TableLoyalAdvertising = () => {
   };
 
   const handleEditBanner = (banner: BannerMain) => {
+    console.log(
+      "Открытие модального окна для баннера с ID:",
+      banner.id,
+      "Название:",
+      banner.name
+    ); // Добавляем логирование для отладки
     setEditingBanner({ ...banner });
     // Сброс состояния файла при открытии диалога
     setSelectedFile(null);
     setPreviewUrl(null);
     setIsValidFile(false);
     setValidationError(null);
+    setDialogBannerId(Number(banner.id)); // Устанавливаем ID баннера для диалога
     setIsDialogOpen(true); // Открываем модалку
   };
 
@@ -253,6 +262,7 @@ export const TableLoyalAdvertising = () => {
   };
 
   const handleDeleteBanner = (id: number) => {
+    console.log("Удаление баннера с ID:", id); // Добавляем логирование для отладки
     deleteBanner(id);
   };
 
@@ -320,8 +330,16 @@ export const TableLoyalAdvertising = () => {
                       </TableCell>
                       <TableCell>
                         <Dialog
-                          open={isDialogOpen}
-                          onOpenChange={setIsDialogOpen}
+                          open={
+                            isDialogOpen && dialogBannerId === Number(banner.id)
+                          }
+                          onOpenChange={(open) => {
+                            if (!open) {
+                              setIsDialogOpen(false);
+                              setDialogBannerId(null);
+                              setEditingBanner(null);
+                            }
+                          }}
                         >
                           <DialogTrigger asChild>
                             <Button
@@ -507,7 +525,15 @@ export const TableLoyalAdvertising = () => {
                       <TableCell>
                         <Button
                           variant="outline"
-                          onClick={() => handleDeleteBanner(Number(banner.id))}
+                          onClick={() => {
+                            console.log(
+                              "Нажата кнопка удаления для баннера с ID:",
+                              banner.id,
+                              "Название:",
+                              banner.name
+                            );
+                            handleDeleteBanner(Number(banner.id));
+                          }}
                         >
                           Удалить
                         </Button>

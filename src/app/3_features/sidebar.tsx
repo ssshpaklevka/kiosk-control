@@ -8,7 +8,6 @@ import {
   ChevronRight,
   Edit3,
   Folder,
-  Heart,
   Home,
   Layers,
   Package,
@@ -94,16 +93,16 @@ export function AdminSidebar({
       label: "Главный экран",
       icon: Home,
     },
-    {
-      id: "loyalty" as const,
-      label: "Лояльность",
-      icon: Heart,
-    },
-    {
-      id: "product-ads" as const,
-      label: "Реклама в каталоге",
-      icon: Package,
-    },
+    // {
+    //   id: "loyalty" as const,
+    //   label: "Лояльность",
+    //   icon: Heart,
+    // },
+    // {
+    //   id: "product-ads" as const,
+    //   label: "Реклама в каталоге",
+    //   icon: Package,
+    // },
     {
       id: "tv-ads" as const,
       label: "Реклама на ТВ",

@@ -62,6 +62,7 @@ export const TableHomeAdvertising = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [dialogBannerId, setDialogBannerId] = useState<number | null>(null);
 
   // Функция валидации файлов (аналогично HomeAdvertising)
   const validateFile = async (
@@ -218,6 +219,7 @@ export const TableHomeAdvertising = () => {
       setValidationError(null);
       setEditingBanner(null);
       setIsDialogOpen(false); // Закрываем модалку после успешного обновления
+      setDialogBannerId(null);
     } catch (error) {
       console.error("Ошибка обновления баннера:", error);
     } finally {
@@ -226,12 +228,19 @@ export const TableHomeAdvertising = () => {
   };
 
   const handleEditBanner = (banner: BannerMain) => {
+    console.log(
+      "Открытие модального окна для баннера с ID:",
+      banner.id,
+      "Название:",
+      banner.name
+    ); // Добавляем логирование для отладки
     setEditingBanner({ ...banner });
     // Сброс состояния файла при открытии диалога
     setSelectedFile(null);
     setPreviewUrl(null);
     setIsValidFile(false);
     setValidationError(null);
+    setDialogBannerId(Number(banner.id)); // Устанавливаем ID баннера для диалога
     setIsDialogOpen(true); // Открываем модалку
   };
 
@@ -253,6 +262,7 @@ export const TableHomeAdvertising = () => {
   };
 
   const handleDeleteBanner = (id: number) => {
+    console.log("Удаление баннера с ID:", id); // Добавляем логирование для отладки
     deleteBanner(id);
   };
 
@@ -270,7 +280,7 @@ export const TableHomeAdvertising = () => {
                   <TableHead>Изображение</TableHead>
                   <TableHead>Название</TableHead>
                   <TableHead>Время показа</TableHead>
-                  <TableHead>Активен</TableHead>
+                  {/* <TableHead>Активен</TableHead> */}
                   <TableHead>Тип</TableHead>
                   <TableHead>Обновить</TableHead>
                   <TableHead>Удалить</TableHead>
@@ -312,16 +322,24 @@ export const TableHomeAdvertising = () => {
                       </TableCell>
                       <TableCell>{banner.name}</TableCell>
                       <TableCell>{banner.seconds} секунд</TableCell>
-                      <TableCell>
+                      {/* <TableCell>
                         {banner.is_active === true ? "Да" : "Нет"}
-                      </TableCell>
+                      </TableCell> */}
                       <TableCell>
                         {banner.type === "video" ? "Видео" : "Изображение"}
                       </TableCell>
                       <TableCell>
                         <Dialog
-                          open={isDialogOpen}
-                          onOpenChange={setIsDialogOpen}
+                          open={
+                            isDialogOpen && dialogBannerId === Number(banner.id)
+                          }
+                          onOpenChange={(open) => {
+                            if (!open) {
+                              setIsDialogOpen(false);
+                              setDialogBannerId(null);
+                              setEditingBanner(null);
+                            }
+                          }}
                         >
                           <DialogTrigger asChild>
                             <Button
@@ -367,7 +385,7 @@ export const TableHomeAdvertising = () => {
                                     placeholder="Введите количество секунд"
                                   />
                                 </div>
-                                <div className="flex flex-col gap-2">
+                                {/* <div className="flex flex-col gap-2">
                                   <Label>Активен ли баннер?</Label>
                                   <div className="flex flex-row gap-2">
                                     <Button
@@ -403,7 +421,7 @@ export const TableHomeAdvertising = () => {
                                       Нет
                                     </Button>
                                   </div>
-                                </div>
+                                </div> */}
                                 <div className="flex flex-col gap-2">
                                   <Label>Новое изображение</Label>
                                   <Button
@@ -507,7 +525,15 @@ export const TableHomeAdvertising = () => {
                       <TableCell>
                         <Button
                           variant="outline"
-                          onClick={() => handleDeleteBanner(Number(banner.id))}
+                          onClick={() => {
+                            console.log(
+                              "Нажата кнопка удаления для баннера с ID:",
+                              banner.id,
+                              "Название:",
+                              banner.name
+                            );
+                            handleDeleteBanner(Number(banner.id));
+                          }}
                         >
                           Удалить
                         </Button>

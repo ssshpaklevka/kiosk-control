@@ -54,11 +54,18 @@ interface FileValidationError {
   message: string;
 }
 
+// Интерфейс для состояния редактирования с is_active
+interface EditingBannerTv extends Omit<BannerTv, "isActive"> {
+  is_active: boolean;
+}
+
 export const TableTvAdvertising = () => {
   const { data: banners } = useGetBannersTv();
   const { mutate: updateBanner } = useUpdateBannerTv();
   const { mutate: deleteBanner } = useDeleteBannerTv();
-  const [editingBanner, setEditingBanner] = useState<BannerTv | null>(null);
+  const [editingBanner, setEditingBanner] = useState<EditingBannerTv | null>(
+    null
+  );
   const [updatedBannerIds, setUpdatedBannerIds] = useState<Set<string>>(
     new Set()
   );
@@ -72,6 +79,7 @@ export const TableTvAdvertising = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [dialogBannerId, setDialogBannerId] = useState<number | null>(null);
 
   // Проверка формата файла
   const validateFile = async (
@@ -265,6 +273,7 @@ export const TableTvAdvertising = () => {
       setValidationError(null);
       setEditingBanner(null);
       setIsDialogOpen(false); // Закрываем модалку после успешного обновления
+      setDialogBannerId(null);
     } catch (error) {
       console.error("Ошибка обновления баннера:", error);
     } finally {
@@ -273,16 +282,25 @@ export const TableTvAdvertising = () => {
   };
 
   const handleEditBanner = (banner: BannerTv) => {
+    console.log(
+      "Открытие модального окна для баннера с ID:",
+      banner.id,
+      "Название:",
+      banner.name,
+      "isActive:",
+      banner.isActive
+    ); // Добавляем логирование для отладки
     setEditingBanner({
       ...banner,
-      // Убедимся, что is_active имеет корректное значение
-      is_active: banner.is_active === true,
-    });
+      // Маппим isActive из API в is_active для внутреннего состояния
+      is_active: banner.isActive === true,
+    } as EditingBannerTv);
     // Сброс состояния файла при открытии диалога
     setSelectedFile(null);
     setPreviewUrl(null);
     setIsValidFile(false);
     setValidationError(null);
+    setDialogBannerId(Number(banner.id)); // Устанавливаем ID баннера для диалога
     setIsDialogOpen(true); // Открываем модалку
   };
 
@@ -304,6 +322,7 @@ export const TableTvAdvertising = () => {
   };
 
   const handleDeleteBanner = (id: number) => {
+    console.log("Удаление баннера с ID:", id); // Добавляем логирование для отладки
     deleteBanner(id);
   };
   return (
@@ -320,7 +339,7 @@ export const TableTvAdvertising = () => {
                   <TableHead>Изображение</TableHead>
                   <TableHead>Название</TableHead>
                   <TableHead>Время показа</TableHead>
-                  <TableHead>Активен</TableHead>
+                  {/* <TableHead>Активен</TableHead> */}
                   <TableHead>Тип</TableHead>
                   <TableHead>Номер ТВ</TableHead>
                   <TableHead>Обновить</TableHead>
@@ -365,17 +384,25 @@ export const TableTvAdvertising = () => {
                     </TableCell>
                     <TableCell>{banner.name}</TableCell>
                     <TableCell>{banner.seconds} секунд</TableCell>
-                    <TableCell>
-                      {banner.is_active === true ? "Да" : "Нет"}
-                    </TableCell>
+                    {/* <TableCell>
+                      {banner.isActive === true ? "Да" : "Нет"}
+                    </TableCell> */}
                     <TableCell>
                       {banner.type === "video" ? "Видео" : "Изображение"}
                     </TableCell>
                     <TableCell>{banner.tvNumber}</TableCell>
                     <TableCell>
                       <Dialog
-                        open={isDialogOpen}
-                        onOpenChange={setIsDialogOpen}
+                        open={
+                          isDialogOpen && dialogBannerId === Number(banner.id)
+                        }
+                        onOpenChange={(open) => {
+                          if (!open) {
+                            setIsDialogOpen(false);
+                            setDialogBannerId(null);
+                            setEditingBanner(null);
+                          }
+                        }}
                       >
                         <DialogTrigger asChild>
                           <Button
@@ -452,7 +479,7 @@ export const TableTvAdvertising = () => {
                                   </SelectContent>
                                 </Select>
                               </div>
-                              <div className="flex flex-col gap-2">
+                              {/* <div className="flex flex-col gap-2">
                                 <Label>Активен ли баннер?</Label>
                                 <div className="flex flex-row gap-2">
                                   <Button
@@ -488,7 +515,7 @@ export const TableTvAdvertising = () => {
                                     Нет
                                   </Button>
                                 </div>
-                              </div>
+                              </div> */}
                               <div className="flex flex-col gap-2">
                                 <Label>Новое изображение</Label>
                                 <Button
@@ -592,7 +619,15 @@ export const TableTvAdvertising = () => {
                     <TableCell>
                       <Button
                         variant="outline"
-                        onClick={() => handleDeleteBanner(Number(banner.id))}
+                        onClick={() => {
+                          console.log(
+                            "Нажата кнопка удаления для баннера с ID:",
+                            banner.id,
+                            "Название:",
+                            banner.name
+                          );
+                          handleDeleteBanner(Number(banner.id));
+                        }}
                       >
                         Удалить
                       </Button>

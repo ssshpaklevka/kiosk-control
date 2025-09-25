@@ -48,7 +48,7 @@ export interface BannerTv {
   name: string;
   seconds: number;
   store: string[];
-  is_active: boolean;
+  isActive: boolean; // Изменено с is_active на isActive для соответствия API
   type: string;
   url: string;
   tvNumber: number;
