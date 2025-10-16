@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { typeApi } from "../api/type-api";
-import { ProductType } from "../types/type.dto";
+import { ProductType, UpdateProductType } from "../types/type.dto";
 
 export const useGetTypes = () => {
   return useQuery<ProductType[]>({
@@ -14,6 +14,24 @@ export const useGetTypesById = (id: number) => {
   return useQuery<ProductType>({
     queryKey: ["product-type", id],
     queryFn: () => typeApi.getTypesById(id),
+  });
+};
+
+export const useUpdateTypes = () => {
+  const queryClient = useQueryClient();
+  return useMutation<
+    ProductType,
+    Error,
+    { id: number; type: UpdateProductType }
+  >({
+    mutationFn: ({ id, type }) => typeApi.updateTypes(id, type),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["product-type"] });
+      toast.success("Тип продукта успешно обновлен");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Ошибка при обновлении типа продукта");
+    },
   });
 };
 
