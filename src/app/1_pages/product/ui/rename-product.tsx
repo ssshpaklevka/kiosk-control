@@ -20,13 +20,13 @@ import {
 } from "lucide-react";
 import React, { useRef, useState } from "react";
 import { Textarea } from "../../../../components/ui/textarea";
-import { updateProductSetApi } from "../api/update-product-set";
 import { TYPE_PRODUCT_ENUM } from "../enum/product-type.enum";
 import {
   useGetGroupOriginal,
   useGetProductOriginal,
   useUpdateProductSet,
 } from "../hooks/use-product";
+import { useUpdateProductSet as useUpdateProductSetFromRetail } from "../hooks/use-update-product-set";
 
 interface FileValidationError {
   type: "format" | "dimensions" | "size";
@@ -76,6 +76,7 @@ export const RenameProduct = () => {
   const { data: productOriginal, refetch: refetchProducts } =
     useGetProductOriginal(selectedGroup);
   const updateProductSet = useUpdateProductSet();
+  const updateProductSetFromRetail = useUpdateProductSetFromRetail();
 
   // Сброс формы после успешного обновления
   React.useEffect(() => {
@@ -209,7 +210,7 @@ export const RenameProduct = () => {
   };
 
   const handleUpdateGroupOriginal = () => {
-    updateProductSetApi.updateProductSet();
+    updateProductSetFromRetail.mutate();
   };
 
   return (
@@ -251,8 +252,14 @@ export const RenameProduct = () => {
                 size={"sm"}
                 className="w-60 "
                 onClick={handleUpdateGroupOriginal}
+                disabled={updateProductSetFromRetail.isPending}
               >
-                <RotateCw className="w-4 h-4 mr-2" /> Обновить группы
+                <RotateCw
+                  className={`w-4 h-4 mr-2 ${updateProductSetFromRetail.isPending ? "animate-spin" : ""}`}
+                />
+                {updateProductSetFromRetail.isPending
+                  ? "Обновление..."
+                  : "Обновить группы"}
               </Button>
             </div>
           </div>
