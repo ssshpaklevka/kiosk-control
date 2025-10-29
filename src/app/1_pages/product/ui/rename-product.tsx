@@ -10,9 +10,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { AlertCircle, Camera, CheckCircle, Image, Upload } from "lucide-react";
+import {
+  AlertCircle,
+  Camera,
+  CheckCircle,
+  Image,
+  RotateCw,
+  Upload,
+} from "lucide-react";
 import React, { useRef, useState } from "react";
 import { Textarea } from "../../../../components/ui/textarea";
+import { updateProductSetApi } from "../api/update-product-set";
 import { TYPE_PRODUCT_ENUM } from "../enum/product-type.enum";
 import {
   useGetGroupOriginal,
@@ -64,8 +72,9 @@ export const RenameProduct = () => {
       setProductName("");
     }
   };
-  const { data: groupOriginal } = useGetGroupOriginal();
-  const { data: productOriginal } = useGetProductOriginal(selectedGroup);
+  const { data: groupOriginal, refetch: refetchGroups } = useGetGroupOriginal();
+  const { data: productOriginal, refetch: refetchProducts } =
+    useGetProductOriginal(selectedGroup);
   const updateProductSet = useUpdateProductSet();
 
   // Сброс формы после успешного обновления
@@ -199,6 +208,10 @@ export const RenameProduct = () => {
     }
   };
 
+  const handleUpdateGroupOriginal = () => {
+    updateProductSetApi.updateProductSet();
+  };
+
   return (
     <div className="p-6">
       <h2 className="text-2xl font-semibold mb-6">Отредактировать продукт</h2>
@@ -208,7 +221,15 @@ export const RenameProduct = () => {
         <div className="flex flex-col justify-center gap-4">
           <div className="flex flex-col gap-2">
             <p>Выберите группу, в которой хотите найти продукт</p>
-            <Select value={selectedGroup} onValueChange={handleGroupSelect}>
+            <Select
+              value={selectedGroup}
+              onValueChange={handleGroupSelect}
+              onOpenChange={(open) => {
+                if (open) {
+                  refetchGroups();
+                }
+              }}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Выберите группу, в которой хотите найти продукт" />
               </SelectTrigger>
@@ -225,11 +246,28 @@ export const RenameProduct = () => {
                 </SelectGroup>
               </SelectContent>
             </Select>
+            <div className="w-full flex justify-center">
+              <Button
+                size={"sm"}
+                className="w-60 "
+                onClick={handleUpdateGroupOriginal}
+              >
+                <RotateCw className="w-4 h-4 mr-2" /> Обновить группы
+              </Button>
+            </div>
           </div>
 
           <div className="flex flex-col gap-2">
             <p>Выберите продукт, который хотите переименовать</p>
-            <Select value={selectedProduct} onValueChange={handleProductSelect}>
+            <Select
+              value={selectedProduct}
+              onValueChange={handleProductSelect}
+              onOpenChange={(open) => {
+                if (open && selectedGroup) {
+                  refetchProducts();
+                }
+              }}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Выберите продукт, который хотите переименовать" />
               </SelectTrigger>
