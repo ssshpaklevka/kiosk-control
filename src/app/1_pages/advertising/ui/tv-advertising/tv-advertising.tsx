@@ -272,11 +272,11 @@ export const TvAdvertising = () => {
               Требования: WebP или WebM, размер{" "}
               {formData.tv_number === 1 ? (
                 <span className="text-red-500 text-[16px] font-semibold">
-                  3840x2160px для ТВ 1
+                  1920x1080px для ТВ 1
                 </span>
               ) : formData.tv_number === 2 ? (
                 <span className="text-red-500 text-[16px] font-semibold">
-                  2184x2160px для ТВ 2
+                  1092x1080px для ТВ 2
                 </span>
               ) : (
                 "выберите ТВ"
