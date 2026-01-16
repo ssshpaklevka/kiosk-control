@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import {
@@ -8,7 +9,7 @@ import {
   Upload,
 } from "lucide-react";
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "../../../../../components/ui/button";
 import {
@@ -81,11 +82,7 @@ export const TableTvAdvertising = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dialogBannerId, setDialogBannerId] = useState<number | null>(null);
 
-  // Проверка формата файла
-  const validateFile = async (
-    file: File
-  ): Promise<FileValidationError | null> => {
-    // Проверяем только формат файла
+  const validateFileFormat = (file: File): FileValidationError | null => {
     const allowedTypes = ["image/webp", "video/webm"];
     if (!allowedTypes.includes(file.type)) {
       return {
@@ -97,41 +94,41 @@ export const TableTvAdvertising = () => {
     return null;
   };
 
-  // Проверка размеров файла в зависимости от выбранного ТВ
   const validateFileDimensions = async (
     file: File,
     tvNumber: number
-  ): Promise<boolean> => {
+  ): Promise<FileValidationError | null> => {
     let requiredWidth: number;
-    const requiredHeight: number = 2160;
+    const requiredHeight: number = 1080;
 
     if (tvNumber === 1) {
       // ТВ 1
-      requiredWidth = 3840;
+      requiredWidth = 1920;
     } else if (tvNumber === 2) {
       // ТВ 2
-      requiredWidth = 2184;
+      requiredWidth = 1092;
     } else {
-      toast.error("Неверный номер ТВ");
-      return false;
+      return { type: "dimensions", message: "Неверный номер ТВ" };
     }
+
+    const checkDimensions = (w: number, h: number) => {
+      if (w !== requiredWidth || h !== requiredHeight) {
+        return {
+          type: "dimensions" as const,
+          message: `Размер ${w}x${h}px не подходит. Требуется: ${requiredWidth}x${requiredHeight}px для ТВ ${tvNumber}`,
+        };
+      }
+      return null;
+    };
 
     if (file.type === "image/webp") {
       return new Promise((resolve) => {
         const img = new window.Image();
         img.onload = () => {
-          if (img.width !== requiredWidth || img.height !== requiredHeight) {
-            toast.error(
-              `Неверные размеры: ${img.width}x${img.height}px. Требуется: ${requiredWidth}x${requiredHeight}px для ТВ ${tvNumber}`
-            );
-            resolve(false);
-            return;
-          }
-          resolve(true);
+          resolve(checkDimensions(img.width, img.height));
         };
         img.onerror = () => {
-          toast.error("Ошибка загрузки изображения");
-          resolve(false);
+          resolve({ type: "format", message: "Ошибка загрузки изображения" });
         };
         img.src = URL.createObjectURL(file);
       });
@@ -140,29 +137,49 @@ export const TableTvAdvertising = () => {
     if (file.type === "video/webm") {
       return new Promise((resolve) => {
         const video = document.createElement("video");
+        video.preload = "metadata";
         video.onloadedmetadata = () => {
-          if (
-            video.videoWidth !== requiredWidth ||
-            video.videoHeight !== requiredHeight
-          ) {
-            toast.error(
-              `Неверные размеры видео: ${video.videoWidth}x${video.videoHeight}px. Требуется: ${requiredWidth}x${requiredHeight}px для ТВ ${tvNumber}`
-            );
-            resolve(false);
-            return;
-          }
-          resolve(true);
+          resolve(checkDimensions(video.videoWidth, video.videoHeight));
         };
         video.onerror = () => {
-          toast.error("Ошибка загрузки видео");
-          resolve(false);
+          resolve({ type: "format", message: "Ошибка загрузки видео" });
         };
         video.src = URL.createObjectURL(file);
       });
     }
 
+    return null;
+  };
+
+  // Общий запуск валидации
+  const runAllValidations = async (file: File, tvNumber: number) => {
+    setValidationError(null);
+    setIsValidFile(false);
+
+    // Проверка формата
+    const formatError = validateFileFormat(file);
+    if (formatError) {
+      setValidationError(formatError);
+      return false;
+    }
+
+    // Проверка размеров
+    const dimError = await validateFileDimensions(file, tvNumber);
+    if (dimError) {
+      setValidationError(dimError);
+      return false;
+    }
+
+    setIsValidFile(true);
     return true;
   };
+
+  // Перевалидация при смене ТВ в модалке (если файл выбран)
+  useEffect(() => {
+    if (selectedFile && editingBanner) {
+      runAllValidations(selectedFile, editingBanner.tvNumber);
+    }
+  }, [editingBanner?.tvNumber]);
 
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -178,16 +195,11 @@ export const TableTvAdvertising = () => {
     }
 
     setSelectedFile(file);
-
-    const error = await validateFile(file);
-    if (error) {
-      setValidationError(error);
-      return;
-    }
-
-    // Если валидация прошла успешно
-    setIsValidFile(true);
     setPreviewUrl(URL.createObjectURL(file));
+
+    if (editingBanner) {
+      await runAllValidations(file, editingBanner.tvNumber);
+    }
   };
 
   const handleUploadClick = () => {
@@ -210,20 +222,10 @@ export const TableTvAdvertising = () => {
       return;
     }
 
-    if (editingBanner.tvNumber > 2 || editingBanner.tvNumber < 1) {
-      toast.error("Номер ТВ должен быть 1 или 2");
-      return;
-    }
-
-    // Проверяем размеры файла, если он загружен
-    if (selectedFile && isValidFile) {
-      const isDimensionsValid = await validateFileDimensions(
-        selectedFile,
-        editingBanner.tvNumber
-      );
-      if (!isDimensionsValid) {
+    // Если выбран новый файл, но он не прошел валидацию - не отправляем
+    if (selectedFile && !isValidFile) {
+        toast.error("Выбранный файл не соответствует требованиям");
         return;
-      }
     }
 
     setIsSubmitting(true);
@@ -274,6 +276,7 @@ export const TableTvAdvertising = () => {
       setEditingBanner(null);
       setIsDialogOpen(false); // Закрываем модалку после успешного обновления
       setDialogBannerId(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (error) {
       console.error("Ошибка обновления баннера:", error);
     } finally {
@@ -300,8 +303,10 @@ export const TableTvAdvertising = () => {
     setPreviewUrl(null);
     setIsValidFile(false);
     setValidationError(null);
-    setDialogBannerId(Number(banner.id)); // Устанавливаем ID баннера для диалога
-    setIsDialogOpen(true); // Открываем модалку
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    
+    setDialogBannerId(Number(banner.id));
+    setIsDialogOpen(true);
   };
 
   const handleSecondsChange = (value: string) => {
@@ -416,7 +421,7 @@ export const TableTvAdvertising = () => {
                         <DialogContent className="max-h-[90vh] overflow-y-auto">
                           <DialogHeader>
                             <DialogTitle>
-                              Обновить баннер &quot;{banner.name}&quot; ?
+                              Обновить баннер &quot;{banner.name}&quot;
                             </DialogTitle>
                           </DialogHeader>
                           {editingBanner && (
@@ -449,7 +454,7 @@ export const TableTvAdvertising = () => {
                                 />
                               </div>
                               <div className="flex flex-col gap-2">
-                                <Label>Новые номер ТВ</Label>
+                                <Label>Новый номер ТВ</Label>
                                 <Select
                                   value={
                                     editingBanner.tvNumber?.toString() || ""
@@ -518,6 +523,9 @@ export const TableTvAdvertising = () => {
                               </div> */}
                               <div className="flex flex-col gap-2">
                                 <Label>Новое изображение</Label>
+                                <p className="text-xs text-muted-foreground">
+                                    Требуется: {editingBanner.tvNumber === 1 ? "1920x1080" : "1092x1080"} px
+                                </p>
                                 <Button
                                   onClick={handleUploadClick}
                                   variant="outline"
@@ -563,7 +571,7 @@ export const TableTvAdvertising = () => {
                                   </div>
                                 )}
 
-                                {isValidFile && (
+                                {isValidFile && !validationError && (
                                   <div className="flex items-start gap-2 p-3 border border-green-500 rounded-md bg-green-50 dark:bg-green-950/20">
                                     <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                                     <div className="text-sm text-green-700 dark:text-green-400">
@@ -578,13 +586,13 @@ export const TableTvAdvertising = () => {
                                 {previewUrl && (
                                   <div className="flex flex-col gap-2">
                                     <Label className="text-lg font-semibold">
-                                      Предварительный просмотр контента:
+                                      Предварительный просмотр:
                                     </Label>
                                     <div>
                                       {selectedFile?.type === "video/webm" ? (
                                         <video
                                           src={previewUrl}
-                                          className=""
+                                          className="w-full h-auto rounded-md"
                                           controls
                                         />
                                       ) : (
@@ -593,6 +601,7 @@ export const TableTvAdvertising = () => {
                                           alt="Preview"
                                           width={400}
                                           height={400}
+                                          className="w-full h-auto rounded-md"
                                         />
                                       )}
                                     </div>
@@ -603,7 +612,7 @@ export const TableTvAdvertising = () => {
                               <div className="flex gap-2 mt-4">
                                 <Button
                                   onClick={handleUpdateBanner}
-                                  disabled={isSubmitting}
+                                  disabled={isSubmitting || (!!selectedFile && !isValidFile)}
                                   className="flex-1"
                                 >
                                   {isSubmitting

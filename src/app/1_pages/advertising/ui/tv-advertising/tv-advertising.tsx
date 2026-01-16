@@ -1,9 +1,10 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { MultiSelect } from "@/components/ui/multiselect";
 import { AlertCircle, CheckCircle, Upload } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   Select,
@@ -56,10 +57,7 @@ export const TvAdvertising = () => {
         }))
       : [];
 
-  const validateFile = async (
-    file: File
-  ): Promise<FileValidationError | null> => {
-    // Проверяем только формат файла
+  const validateFileFormat = (file: File): FileValidationError | null => {
     const allowedTypes = ["image/webp", "video/webm"];
     if (!allowedTypes.includes(file.type)) {
       return {
@@ -75,37 +73,36 @@ export const TvAdvertising = () => {
   const validateFileDimensions = async (
     file: File,
     tvNumber: number
-  ): Promise<boolean> => {
+  ): Promise<FileValidationError | null> => {
     let requiredWidth: number;
-    const requiredHeight: number = 2160;
+    const requiredHeight: number = 1080;
 
     if (tvNumber === 1) {
-      // ТВ 1
-      requiredWidth = 3840;
+      requiredWidth = 1920;
     } else if (tvNumber === 2) {
-      // ТВ 2
-      requiredWidth = 2184;
+      requiredWidth = 1092;
     } else {
-      toast.error("Выберите номер ТВ");
-      return false;
+      return { type: "dimensions", message: "Выберите номер ТВ" };
     }
+
+    const checkDimensions = (w: number, h: number) => {
+      if (w !== requiredWidth || h !== requiredHeight) {
+        return {
+          type: "dimensions" as const,
+          message: `Размер ${w}x${h}px не подходит. Требуется: ${requiredWidth}x${requiredHeight}px для ТВ ${tvNumber}`,
+        };
+      }
+      return null;
+    };
 
     if (file.type === "image/webp") {
       return new Promise((resolve) => {
         const img = new Image();
         img.onload = () => {
-          if (img.width !== requiredWidth || img.height !== requiredHeight) {
-            toast.error(
-              `Неверные размеры: ${img.width}x${img.height}px. Требуется: ${requiredWidth}x${requiredHeight}px для ТВ ${tvNumber}`
-            );
-            resolve(false);
-            return;
-          }
-          resolve(true);
+          resolve(checkDimensions(img.width, img.height));
         };
         img.onerror = () => {
-          toast.error("Ошибка загрузки изображения");
-          resolve(false);
+          resolve({ type: "format", message: "Ошибка загрузки изображения" });
         };
         img.src = URL.createObjectURL(file);
       });
@@ -114,30 +111,44 @@ export const TvAdvertising = () => {
     if (file.type === "video/webm") {
       return new Promise((resolve) => {
         const video = document.createElement("video");
+        video.preload = "metadata"; // Важно для загрузки метаданных
         video.onloadedmetadata = () => {
-          if (
-            video.videoWidth !== requiredWidth ||
-            video.videoHeight !== requiredHeight
-          ) {
-            toast.error(
-              `Неверные размеры видео: ${video.videoWidth}x${video.videoHeight}px. Требуется: ${requiredWidth}x${requiredHeight}px для ТВ ${tvNumber}`
-            );
-            resolve(false);
-            return;
-          }
-          resolve(true);
+          resolve(checkDimensions(video.videoWidth, video.videoHeight));
         };
         video.onerror = () => {
-          toast.error("Ошибка загрузки видео");
-          resolve(false);
+          resolve({ type: "format", message: "Ошибка загрузки видео" });
         };
         video.src = URL.createObjectURL(file);
       });
     }
 
+    return null;
+  };
+
+  // Общая функция запуска всех валидаций
+  const runAllValidations = async (file: File, tvNumber: number) => {
+    setValidationError(null);
+    setIsValidFile(false);
+
+    // 1. Формат
+    const formatError = validateFileFormat(file);
+    if (formatError) {
+      setValidationError(formatError);
+      return false;
+    }
+
+    // 2. Размеры
+    const dimError = await validateFileDimensions(file, tvNumber);
+    if (dimError) {
+      setValidationError(dimError);
+      return false;
+    }
+
+    setIsValidFile(true);
     return true;
   };
 
+  // Обработчик выбора файла
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -152,17 +163,18 @@ export const TvAdvertising = () => {
     }
 
     setSelectedFile(file);
-
-    const error = await validateFile(file);
-    if (error) {
-      setValidationError(error);
-      return;
-    }
-
-    // Если валидация прошла успешно
-    setIsValidFile(true);
     setPreviewUrl(URL.createObjectURL(file));
+
+    // Запускаем валидацию
+    await runAllValidations(file, formData.tv_number);
   };
+
+  // 3. Эффект: Перевалидация при смене ТВ (если файл уже выбран)
+  useEffect(() => {
+    if (selectedFile) {
+      runAllValidations(selectedFile, formData.tv_number);
+    }
+  }, [formData.tv_number]); // Зависимость от номера ТВ
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -185,44 +197,24 @@ export const TvAdvertising = () => {
     }
   };
 
-  // Функция валидации формы
-  const validateForm = async (): Promise<boolean> => {
+  const handleSubmit = async () => {
+    // Финальная проверка перед отправкой
     if (!selectedFile) {
       toast.error("Необходимо загрузить файл");
-      return false;
+      return;
     }
 
     if (!formData.name.trim()) {
       toast.error("Название баннера обязательно");
-      return false;
+      return;
     }
 
-    if (formData.seconds < 0) {
-      toast.error("Время показа не может быть отрицательным");
-      return false;
+    // Повторно запускаем валидацию, чтобы убедиться, что все ок
+    const isValid = await runAllValidations(selectedFile, formData.tv_number);
+    if (!isValid) {
+      toast.error("Исправьте ошибки валидации файла");
+      return;
     }
-
-    if (formData.tv_number > 2 || formData.tv_number < 1) {
-      toast.error("Номер ТВ должен быть 1 или 2");
-      return false;
-    }
-
-    // Проверяем размеры файла
-    const isDimensionsValid = await validateFileDimensions(
-      selectedFile,
-      formData.tv_number
-    );
-    if (!isDimensionsValid) {
-      return false;
-    }
-
-    return true;
-  };
-
-  // Функция отправки формы
-  const handleSubmit = async () => {
-    const isValid = await validateForm();
-    if (!isValid) return;
 
     setIsSubmitting(true);
 
@@ -245,12 +237,16 @@ export const TvAdvertising = () => {
       setSelectedFile(null);
       setPreviewUrl(null);
       setIsValidFile(false);
+      if (fileInputRef.current) fileInputRef.current.value = ""; // Сброс инпута
+      toast.success("Реклама успешно создана");
     } catch (error) {
       console.error("Ошибка создания рекламы:", error);
+      toast.error("Ошибка при создании рекламы");
     } finally {
       setIsSubmitting(false);
     }
   };
+
   return (
     <>
       <div className="flex flex-row gap-8">
@@ -262,8 +258,14 @@ export const TvAdvertising = () => {
                 ? `url(${previewUrl})`
                 : "url(/terminal-admin/terminal/home.webp)",
             }}
-            className="w-96 h-164 bg-accent bg-no-repeat bg-center bg-cover"
-          ></Card>
+            className="w-96 h-164 bg-accent bg-no-repeat bg-center bg-cover border relative"
+          >
+            {validationError && (
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                <AlertCircle className="text-red-500 w-12 h-12" />
+              </div>
+            )}
+          </Card>
         </div>
         <div className="flex flex-col gap-4 min-w-80">
           <div>
@@ -323,7 +325,7 @@ export const TvAdvertising = () => {
             </div>
           )}
 
-          {isValidFile && (
+          {isValidFile && !validationError && (
             <div className="flex items-start gap-2 p-3 border border-green-500 rounded-md bg-green-50 dark:bg-green-950/20">
               <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
               <div className="text-sm text-green-700 dark:text-green-400">
@@ -430,7 +432,7 @@ export const TvAdvertising = () => {
 
             <Button
               className="w-full"
-              disabled={!selectedFile || isSubmitting}
+              disabled={!selectedFile || !!validationError || isSubmitting}
               onClick={handleSubmit}
             >
               {isSubmitting ? "Загрузка файла..." : "Создать рекламу"}
