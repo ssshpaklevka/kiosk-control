@@ -52,7 +52,7 @@ export const TvAdvertising = () => {
       ? stores.map((store) => ({
           id: store.id,
           name: store.name,
-          value: store.id,
+          value: String(store.id),
           label: store.name,
         }))
       : [];
@@ -201,6 +201,11 @@ export const TvAdvertising = () => {
     // Финальная проверка перед отправкой
     if (!selectedFile) {
       toast.error("Необходимо загрузить файл");
+      return;
+    }
+
+    if (!formData.store || formData.store.length < 1) {
+      toast.error("Необходимо выбрать хотя бы один магазин");
       return;
     }
 
@@ -389,22 +394,18 @@ export const TvAdvertising = () => {
             <div className="flex flex-col gap-2">
               <p>
                 Магазины (где показывать рекламу){" "}
-                <span className="text-sm text-muted-foreground">
-                  (временно отключено)
-                </span>
               </p>
               <MultiSelect
-                maxCount={10}
+                maxCount={1}
                 options={storageData}
                 value={(formData.store || []).map(String)}
                 onValueChange={(value) => {
                   setFormData((prev) => ({
                     ...prev,
-                    store: value.map(Number),
+                    store: value,
                   }));
                 }}
-                placeholder="Поле временно отключено"
-                disabled={true}
+                placeholder="Выберите магазины"
               />
             </div>
 

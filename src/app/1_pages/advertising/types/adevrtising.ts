@@ -8,10 +8,10 @@ export interface Advertising {
 
 // Типы для магазинов
 export interface Store {
-  id: string;
+  id: number;
+  city: string;
   name: string;
-  address?: string;
-  is_active?: boolean;
+  region: string;
 }
 
 // Типы для баннеров главной страницы
@@ -19,8 +19,8 @@ export interface BannerMain {
   id?: string;
   name: string;
   seconds: number;
-  store: string[]; // массив id магазинов
-  is_active: boolean;
+  store: string[];
+  isActive: boolean;
   type: string;
   url: string;
   updated_at?: string;
@@ -30,7 +30,7 @@ export interface BannerMain {
 export interface CreateBanner {
   name: string;
   seconds: number;
-  store?: string[]; // Сделали необязательным
+  store: string[];
   is_active: boolean;
   file: File;
 }
@@ -38,7 +38,7 @@ export interface CreateBanner {
 export interface UpdateBannerMainDto {
   name?: string;
   seconds?: number;
-  store?: string[];
+  store: string[];
   is_active?: boolean;
   file?: File;
 }
@@ -48,7 +48,7 @@ export interface BannerTv {
   name: string;
   seconds: number;
   store: string[];
-  isActive: boolean; // Изменено с is_active на isActive для соответствия API
+  isActive: boolean;
   type: string;
   url: string;
   tvNumber: number;
@@ -57,7 +57,7 @@ export interface BannerTv {
 export interface CreateBannerTv {
   name: string;
   seconds: number;
-  store?: number[]; // Исправлено на number[]
+  store: string[];
   is_active: boolean;
   file: File;
   tv_number: number;
@@ -66,7 +66,7 @@ export interface CreateBannerTv {
 export interface UpdateBannerTvDto {
   name?: string;
   seconds?: number;
-  store?: number[]; // Исправлено на number[]
+  store: string[];
   is_active?: boolean;
   file?: File;
   tv_number?: number;

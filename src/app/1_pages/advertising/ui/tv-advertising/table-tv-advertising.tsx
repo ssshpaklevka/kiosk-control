@@ -6,10 +6,11 @@ import {
   CameraOff,
   CheckCircle,
   Pencil,
+  Store,
   Upload,
 } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "../../../../../components/ui/button";
 import {
@@ -27,14 +28,7 @@ import {
 } from "../../../../../components/ui/dialog";
 import { Input } from "../../../../../components/ui/input";
 import { Label } from "../../../../../components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../../../../components/ui/select";
+import { MultiSelect } from "../../../../../components/ui/multiselect";
 import {
   Table,
   TableBody,
@@ -48,7 +42,9 @@ import {
   useGetBannersTv,
   useUpdateBannerTv,
 } from "../../hooks/use-banner-tv";
+import { useStores } from "../../hooks/use-stores";
 import { BannerTv, UpdateBannerTvDto } from "../../types/adevrtising";
+import { Separator } from "../../../../../components/ui/separator";
 
 interface FileValidationError {
   type: "format" | "dimensions" | "dpi" | "size";
@@ -62,11 +58,13 @@ interface EditingBannerTv extends Omit<BannerTv, "isActive"> {
 
 export const TableTvAdvertising = () => {
   const { data: banners } = useGetBannersTv();
+  const { data: stores } = useStores();
   const { mutate: updateBanner } = useUpdateBannerTv();
   const { mutate: deleteBanner } = useDeleteBannerTv();
   const [editingBanner, setEditingBanner] = useState<EditingBannerTv | null>(
     null
   );
+  const [dialogBannerStore, setDialogBannerStore] = useState<number | null>(null);
   const [updatedBannerIds, setUpdatedBannerIds] = useState<Set<string>>(
     new Set()
   );
@@ -222,10 +220,15 @@ export const TableTvAdvertising = () => {
       return;
     }
 
+    if (!editingBanner.store || editingBanner.store.length < 1) {
+      toast.error("Необходимо выбрать хотя бы один магазин");
+      return;
+    }
+
     // Если выбран новый файл, но он не прошел валидацию - не отправляем
     if (selectedFile && !isValidFile) {
-        toast.error("Выбранный файл не соответствует требованиям");
-        return;
+      toast.error("Выбранный файл не соответствует требованиям");
+      return;
     }
 
     setIsSubmitting(true);
@@ -237,11 +240,13 @@ export const TableTvAdvertising = () => {
         is_active: boolean;
         file?: File;
         tv_number: number;
+        store: string[];
       } = {
         name: editingBanner.name,
         seconds: editingBanner.seconds,
         is_active: editingBanner.is_active,
         tv_number: editingBanner.tvNumber,
+        store: editingBanner.store,
       };
 
       // Если загружен новый файл, добавляем его
@@ -254,7 +259,7 @@ export const TableTvAdvertising = () => {
         seconds: Number(updateData.seconds),
         is_active: updateData.is_active,
         tv_number: updateData.tv_number,
-        // НЕ передаем store, если он не нужен - пусть остается undefined
+        store: updateData.store,
         ...(updateData.file && { file: updateData.file }),
       };
 
@@ -304,8 +309,13 @@ export const TableTvAdvertising = () => {
     setIsValidFile(false);
     setValidationError(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
-    
+
     setDialogBannerId(Number(banner.id));
+    setIsDialogOpen(true);
+  };
+
+  const handleShowStore = (banner: BannerTv) => {
+    setDialogBannerStore(Number(banner.id));
     setIsDialogOpen(true);
   };
 
@@ -330,6 +340,18 @@ export const TableTvAdvertising = () => {
     console.log("Удаление баннера с ID:", id); // Добавляем логирование для отладки
     deleteBanner(id);
   };
+
+  // Преобразуем данные магазинов для MultiSelect
+  const storageData =
+    stores && Array.isArray(stores)
+      ? stores.map((store) => ({
+        id: store.id,
+        name: store.name,
+        value: String(store.id),
+        label: store.name,
+      }))
+      : [];
+
   return (
     <div className="h-screen flex flex-col">
       <Card className="flex flex-col mb-4">
@@ -338,65 +360,105 @@ export const TableTvAdvertising = () => {
         </CardHeader>
         <CardContent>
           {banners && banners.length > 0 ? (
-            <Table>
+            <Table className="text-center">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Изображение</TableHead>
-                  <TableHead>Название</TableHead>
-                  <TableHead>Время показа</TableHead>
-                  {/* <TableHead>Активен</TableHead> */}
-                  <TableHead>Тип</TableHead>
-                  <TableHead>Номер ТВ</TableHead>
-                  <TableHead>Обновить</TableHead>
-                  <TableHead>Удалить</TableHead>
+                  <TableHead className="text-center">Изображение</TableHead>
+                  <TableHead className="text-center">Название</TableHead>
+                  <TableHead className="text-center">Время показа</TableHead>
+                  <TableHead className="text-center">Активен</TableHead>
+                  <TableHead className="text-center">Тип</TableHead>
+                  <TableHead className="text-center">Номер ТВ</TableHead>
+                  <TableHead className="text-center">Магазины</TableHead>
+                  <TableHead className="text-center"></TableHead>
+                  <TableHead className="text-center"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {banners?.map((banner) => (
                   <TableRow key={banner.id}>
                     <TableCell>
-                      {banner.url ? (
-                        banner.type === "video" ? (
-                          <video
-                            src={
-                              updatedBannerIds.has(banner.id!)
-                                ? `${banner.url}?updated=${Date.now()}`
-                                : banner.url
-                            }
-                            className="size-[100px] object-cover rounded"
-                            controls
-                            key={`video-${banner.id}-${updatedBannerIds.has(banner.id!) ? Date.now() : "original"}`}
-                          />
+                      <div className="flex justify-center">
+                        {banner.url ? (
+                          banner.type === "video" ? (
+                            <video
+                              src={
+                                updatedBannerIds.has(banner.id!)
+                                  ? `${banner.url}?updated=${Date.now()}`
+                                  : banner.url
+                              }
+                              className="size-[100px] object-cover rounded"
+                              controls
+                              key={`video-${banner.id}-${updatedBannerIds.has(banner.id!) ? Date.now() : "original"}`}
+                            />
+                          ) : (
+                            <Image
+                              src={
+                                updatedBannerIds.has(banner.id!)
+                                  ? `${banner.url}?updated=${Date.now()}`
+                                  : banner.url
+                              }
+                              alt={banner.name}
+                              width={100}
+                              height={100}
+                              key={`image-${banner.id}-${updatedBannerIds.has(banner.id!) ? Date.now() : "original"}`}
+                              unoptimized={updatedBannerIds.has(banner.id!)} // Отключаем оптимизацию только для обновленных
+                            />
+                          )
                         ) : (
-                          <Image
-                            src={
-                              updatedBannerIds.has(banner.id!)
-                                ? `${banner.url}?updated=${Date.now()}`
-                                : banner.url
-                            }
-                            alt={banner.name}
-                            width={100}
-                            height={100}
-                            key={`image-${banner.id}-${updatedBannerIds.has(banner.id!) ? Date.now() : "original"}`}
-                            unoptimized={updatedBannerIds.has(banner.id!)} // Отключаем оптимизацию только для обновленных
-                          />
-                        )
-                      ) : (
-                        <Card className="size-[100px] flex justify-center items-center border border-dashed border-muted-foreground/25">
-                          <CameraOff className="w-14 h-14 text-muted-foreground " />
-                        </Card>
-                      )}
+                          <Card className="size-[100px] flex justify-center items-center border border-dashed border-muted-foreground/25">
+                            <CameraOff className="w-14 h-14 text-muted-foreground " />
+                          </Card>
+                        )}
+                      </div>
                     </TableCell>
-                    <TableCell>{banner.name}</TableCell>
+                    <TableCell className="max-w-[150px] truncate">{banner.name}</TableCell>
                     <TableCell>{banner.seconds} секунд</TableCell>
-                    {/* <TableCell>
+                    <TableCell>
                       {banner.isActive === true ? "Да" : "Нет"}
-                    </TableCell> */}
+                    </TableCell>
                     <TableCell>
                       {banner.type === "video" ? "Видео" : "Изображение"}
                     </TableCell>
                     <TableCell>{banner.tvNumber}</TableCell>
-                    <TableCell>
+                    <TableCell className="text-center">
+                      <Dialog
+                        open={
+                          isDialogOpen && dialogBannerStore === Number(banner.id)
+                        }
+                        onOpenChange={(open) => {
+                          if (!open) {
+                            setIsDialogOpen(false);
+                            setDialogBannerStore(null);
+                          }
+                        }}
+                      >
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            onClick={() => handleShowStore(banner)}
+                          >
+                            <Store className="w-4 h-4" /> {banner.store?.length}
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
+                          <DialogHeader className="overflow-hidden">
+                            <DialogTitle className="truncate whitespace-pre-line">
+                              Магазины для баннера &quot;{banner.name}&quot;
+                            </DialogTitle>
+                          </DialogHeader>
+                          <div className="flex flex-col gap-2">
+                            {banner.store && banner.store?.map((store, index) => (
+                              <Fragment key={store}>
+                                <Separator />
+                                <span>{index + 1}. {stores?.find((s) => s.id === Number(store))?.name}</span>
+                              </Fragment>
+                            ))}
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </TableCell>
+                    <TableCell className="w-px whitespace-nowrap px-2">
                       <Dialog
                         open={
                           isDialogOpen && dialogBannerId === Number(banner.id)
@@ -418,9 +480,9 @@ export const TableTvAdvertising = () => {
                             <Pencil className="w-4 h-4" />
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-h-[90vh] overflow-y-auto">
-                          <DialogHeader>
-                            <DialogTitle>
+                        <DialogContent className="max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
+                          <DialogHeader className="overflow-hidden">
+                            <DialogTitle className="truncate whitespace-pre-line">
                               Обновить баннер &quot;{banner.name}&quot;
                             </DialogTitle>
                           </DialogHeader>
@@ -454,37 +516,26 @@ export const TableTvAdvertising = () => {
                                 />
                               </div>
                               <div className="flex flex-col gap-2">
-                                <Label>Новый номер ТВ</Label>
-                                <Select
-                                  value={
-                                    editingBanner.tvNumber?.toString() || ""
-                                  }
+                                <p>
+                                  Магазины (где показывать рекламу){" "}
+                                </p>
+                                <MultiSelect
+                                  maxCount={1}
+                                  options={storageData}
+                                  value={(editingBanner.store || []).map(String)}
                                   onValueChange={(value) => {
-                                    const newTvNumber = parseInt(value, 10);
-                                    setEditingBanner({
-                                      ...editingBanner,
-                                      tvNumber: newTvNumber,
+                                    setEditingBanner((prev) => {
+                                      if (!prev) return null;
+                                      return {
+                                        ...prev,
+                                        store: value,
+                                      }
                                     });
                                   }}
-                                >
-                                  <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Выберите номер ТВ" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectGroup>
-                                      {Array.from({ length: 2 }, (_, index) => (
-                                        <SelectItem
-                                          key={index + 1}
-                                          value={(index + 1).toString()}
-                                        >
-                                          ТВ {index + 1}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectGroup>
-                                  </SelectContent>
-                                </Select>
+                                  placeholder="Выберите магазины"
+                                />
                               </div>
-                              {/* <div className="flex flex-col gap-2">
+                              <div className="flex flex-col gap-2">
                                 <Label>Активен ли баннер?</Label>
                                 <div className="flex flex-row gap-2">
                                   <Button
@@ -520,11 +571,11 @@ export const TableTvAdvertising = () => {
                                     Нет
                                   </Button>
                                 </div>
-                              </div> */}
+                              </div>
                               <div className="flex flex-col gap-2">
                                 <Label>Новое изображение</Label>
                                 <p className="text-xs text-muted-foreground">
-                                    Требуется: {editingBanner.tvNumber === 1 ? "1920x1080" : "1092x1080"} px
+                                  Требуется: {editingBanner.tvNumber === 1 ? "1920x1080" : "1092x1080"} px
                                 </p>
                                 <Button
                                   onClick={handleUploadClick}
@@ -625,7 +676,7 @@ export const TableTvAdvertising = () => {
                         </DialogContent>
                       </Dialog>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="w-px whitespace-nowrap px-2">
                       <Button
                         variant="outline"
                         onClick={() => {
