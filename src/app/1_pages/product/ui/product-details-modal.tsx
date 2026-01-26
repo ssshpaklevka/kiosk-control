@@ -11,6 +11,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Camera } from "lucide-react";
 import { useGetProductById } from "../hooks/use-product";
+import { Fragment } from "react";
 
 interface ProductDetailsModalProps {
   productId: number | null;
@@ -32,7 +33,7 @@ export const ProductDetailsModal = ({
   if (isLoading) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>Загрузка продукта...</DialogTitle>
           </DialogHeader>
@@ -47,7 +48,7 @@ export const ProductDetailsModal = ({
   if (error || !product) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>Ошибка загрузки</DialogTitle>
           </DialogHeader>
@@ -63,7 +64,7 @@ export const ProductDetailsModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle className="text-2xl">{product.name}</DialogTitle>
         </DialogHeader>
@@ -167,8 +168,8 @@ export const ProductDetailsModal = ({
 
           {/* Группы */}
           {product.groups &&
-          product.groups.length &&
-          product.groups[0].name !== null ? (
+            product.groups.length &&
+            product.groups[0].name !== null ? (
             <Card>
               <CardContent className="p-4">
                 <h3 className="font-semibold mb-3">Группы</h3>
@@ -216,21 +217,16 @@ export const ProductDetailsModal = ({
               <CardContent className="p-4">
                 <h3 className="font-semibold mb-3">Дополнения</h3>
                 <div className="space-y-2">
-                  {product.extras.map((extra) => (
-                    <div
-                      key={extra.id}
-                      className="flex justify-between items-center"
-                    >
-                      <div className="flex flex-col items-center gap-2">
-                        <span className="text-md font-medium">Название</span>
+                  <div className="grid grid-cols-2 w-full gap-2 justify-items-center">
+                    <span className="text-md font-medium">Название</span>
+                    <span className="text-md font-medium">Вес</span>
+                    {product.extras.map((extra) => (
+                      <Fragment key={extra.id}>
                         <span className="text-sm">{extra.name}</span>
-                      </div>
-                      <div className="flex flex-col items-center gap-2">
-                        <span className="text-md font-medium">Цена</span>
-                        <span className="text-sm">{extra.price}₽</span>
-                      </div>
-                    </div>
-                  ))}
+                        <span className="text-sm">{extra.weight ? extra.weight + 'г' : ''}</span>
+                      </Fragment>
+                    ))}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -242,26 +238,16 @@ export const ProductDetailsModal = ({
               <CardContent className="p-4">
                 <h3 className="font-semibold mb-3">Типы</h3>
                 <div className="space-y-2">
-                  {product.type.map((type) => (
-                    <div
-                      key={type.id}
-                      className="grid grid-cols-3 border-b border-muted-foreground/25 pb-2"
-                    >
-                      <div className="flex flex-col items-center gap-2">
-                        <span className="text-md font-medium">Название</span>
+                  <div className="grid grid-cols-2 w-full gap-2 justify-items-center">
+                    <span className="text-md font-medium">Название</span>
+                    <span className="text-md font-medium">Вес</span>
+                    {product.type.map((type) => (
+                      <Fragment key={type.id}>
                         <span className="text-sm">{type.name}</span>
-                      </div>
-                      <div className="flex flex-col items-center gap-2">
-                        <span className="text-md font-medium">Вес</span>
-                        <span className="text-sm">{type.weight}</span>
-                      </div>
-
-                      <div className="flex flex-col items-center gap-2">
-                        <span className="text-md font-medium">Цена</span>
-                        <span className="text-sm">{type.price}₽</span>
-                      </div>
-                    </div>
-                  ))}
+                        <span className="text-sm">{type.weight ? type.weight + 'г' : ''}</span>
+                      </Fragment>
+                    ))}
+                  </div>
                 </div>
               </CardContent>
             </Card>

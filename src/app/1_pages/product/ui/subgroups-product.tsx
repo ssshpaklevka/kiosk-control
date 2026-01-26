@@ -161,7 +161,7 @@ export const SubgroupsProduct = () => {
                         setUpdatingSubGroupId(open ? group.id : null)
                       }
                     >
-                      <DialogTrigger>
+                      <DialogTrigger asChild>
                         <Button variant="outline" size="sm">
                           <Edit2 className="w-4 h-4" />
                         </Button>
@@ -208,7 +208,7 @@ export const SubgroupsProduct = () => {
                         setDeletingSubGroupId(open ? group.id : null)
                       }
                     >
-                      <DialogTrigger>
+                      <DialogTrigger asChild>
                         <Button variant="outline" size="sm">
                           <Trash2 className="w-4 h-4" />
                         </Button>

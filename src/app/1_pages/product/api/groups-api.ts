@@ -4,7 +4,7 @@ import { CreateGroup, UpdateGroup } from "../types/group.dto";
 export const groupsApi = {
   getGroups: async () => {
     try {
-      const response = await apiClient.get("/groups");
+      const response = await apiClient.get("/groups/get-all-group");
       return Array.isArray(response.data)
         ? response.data
         : response.data?.data || response.data?.groups || [];
@@ -19,6 +19,7 @@ export const groupsApi = {
 
     formData.append("name", group.name);
     formData.append("image", group.image);
+    formData.append("idStore", JSON.stringify(group.store));
 
     const response = await apiClient.post("/groups/create", formData, {
       headers: {
@@ -32,6 +33,8 @@ export const groupsApi = {
     const formData = new FormData();
 
     formData.append("name", group.name);
+
+    formData.append("idStore", JSON.stringify(group.store));
 
     if (group.image) {
       formData.append("image", group.image);

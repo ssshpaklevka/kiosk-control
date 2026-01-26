@@ -115,7 +115,6 @@ export const productsApi = {
 
       formData.append("name", productData.name);
       formData.append("description", productData.description);
-      formData.append("price", productData.price.toString());
       formData.append("type", productData.type);
       formData.append("weight", productData.weight.toString());
       formData.append("image", productData.image);

@@ -213,10 +213,8 @@ export const UpdateProduct = ({
       subgroups: selectedSubGroups
         .map((id) => parseInt(id))
         .filter((id) => !isNaN(id)),
-      extras: selectedExtras
-        .map((id) => parseInt(id))
-        .filter((id) => !isNaN(id)),
-      type: selectedTypes.map((id) => parseInt(id)).filter((id) => !isNaN(id)),
+      extras: selectedExtras.map((t) => extras?.find((extra) => extra.idProduct === parseInt(t))?.id).filter((id) => id != undefined) as number[],
+      type: selectedTypes.map((t) => types?.find((type) => type.idProduct === parseInt(t))?.id).filter((id) => id != undefined) as number[],
       ingredients: selectedIngredients
         .map((id) => parseInt(id))
         .filter((id) => !isNaN(id)),
@@ -231,7 +229,7 @@ export const UpdateProduct = ({
   };
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className=" max-h-[90vh] overflow-y-auto">
+      <DialogContent className=" max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>Обновить продукт {product?.name}</DialogTitle>
         </DialogHeader>
@@ -478,7 +476,7 @@ export const UpdateProduct = ({
                       maxCount={4}
                       options={
                         extras?.map((group) => ({
-                          value: group?.id.toString(),
+                          value: group?.idProduct.toString(),
                           label: group?.name,
                         })) || []
                       }
@@ -501,7 +499,7 @@ export const UpdateProduct = ({
                       maxCount={4}
                       options={
                         types?.map((group) => ({
-                          value: group?.id.toString(),
+                          value: group?.idProduct.toString(),
                           label: group?.name,
                         })) || []
                       }

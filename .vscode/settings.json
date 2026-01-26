@@ -30,6 +30,9 @@
       "**/build": true,
       "**/coverage": true,
       "**/.git": true
+    },
+    "[typescriptreact]": {
+      "editor.defaultFormatter": "vscode.typescript-language-features"
     }
   }
   

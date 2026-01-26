@@ -38,7 +38,6 @@ export const RenameProduct = () => {
   const [selectedProduct, setSelectedProduct] = useState<string>("");
   const [productName, setProductName] = useState<string>("");
   const [productDescription, setProductDescription] = useState<string>("");
-  const [productPrice, setProductPrice] = useState<string>("");
   const [productType, setProductType] = useState<TYPE_PRODUCT_ENUM>(
     TYPE_PRODUCT_ENUM.TYPE
   );
@@ -85,7 +84,6 @@ export const RenameProduct = () => {
       setSelectedProduct("");
       setProductName("");
       setProductDescription("");
-      setProductPrice("");
       setProductWeight("");
       setProductType(TYPE_PRODUCT_ENUM.TYPE);
       setSelectedFile(null);
@@ -175,16 +173,12 @@ export const RenameProduct = () => {
     setProductType(value as TYPE_PRODUCT_ENUM);
   };
   const handleUpdateProduct = () => {
-    const price = Math.round(parseFloat(productPrice) * 100) / 100;
     const weight = Math.round(parseFloat(productWeight) * 100) / 100;
 
     if (
       selectedProduct &&
       productName.trim() &&
       productDescription.trim() &&
-      productPrice.trim() &&
-      !isNaN(price) &&
-      price > 0 &&
       productType &&
       productWeight.trim() &&
       !isNaN(weight) &&
@@ -198,7 +192,6 @@ export const RenameProduct = () => {
           // id: Number(selectedProduct),
           name: productName,
           description: productDescription,
-          price: price,
           image: selectedFile,
           type: productType,
           weight: weight,
@@ -345,28 +338,6 @@ export const RenameProduct = () => {
 
           <div className="flex flex-col gap-2">
             <p>
-              Введите новую цену продукта{" "}
-              <span className="text-red-500">*</span>
-            </p>
-            <Input
-              type="number"
-              step="0.01"
-              min="0"
-              disabled={!selectedProduct}
-              placeholder={
-                selectedProduct
-                  ? "Введите новую цену продукта (например: 199.99)"
-                  : "Сначала выберите продукт"
-              }
-              value={productPrice}
-              onChange={(e) => {
-                setProductPrice(e.target.value);
-              }}
-            />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <p>
               Тип продукта <span className="text-red-500">*</span>
             </p>
             <Select value={productType} onValueChange={handleProductTypeSelect}>
@@ -420,9 +391,6 @@ export const RenameProduct = () => {
               !selectedProduct ||
               !productName.trim() ||
               !productDescription.trim() ||
-              !productPrice.trim() ||
-              isNaN(parseFloat(productPrice)) ||
-              parseFloat(productPrice) <= 0 ||
               !productWeight.trim() ||
               isNaN(parseFloat(productWeight)) ||
               parseFloat(productWeight) <= 0 ||
