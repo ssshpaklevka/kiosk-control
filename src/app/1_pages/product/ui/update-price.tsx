@@ -121,7 +121,7 @@ export const UpdatePrice: FC<UpdatePriceProps> = ({
   }
 
   const handleUpdatePrice = () => {
-    if (!selectedItem || prices.length === 0 || !productId) return;
+    if (!selectedItem || !productId) return;
     updatePriceList({
       id: productId,
       idProduct: Number(selectedItem),
@@ -199,7 +199,7 @@ export const UpdatePrice: FC<UpdatePriceProps> = ({
               </div>}
               <div className="flex gap-2 items-center">
                 <Input type="text" className="w-full" placeholder="Поиск по магазину" value={searchValue} onChange={(e) => setSearchValue(e.target.value)} />
-                <Button disabled={!selectedItem || prices.length === 0} onClick={handleUpdatePrice}>Обновить цены</Button>
+                <Button disabled={!selectedItem} onClick={handleUpdatePrice}>Обновить цены</Button>
               </div>
             </>
           }
