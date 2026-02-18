@@ -84,13 +84,6 @@ export const UpdateProduct = ({
   const { data: ingredients } = useGetProductIngredients(ingredientsEnabled);
   const updateProductMutation = useUpdateProduct();
 
-  // Закрываем модалку только после успешного обновления
-  useEffect(() => {
-    if (updateProductMutation.isSuccess) {
-      onClose();
-    }
-  }, [updateProductMutation.isSuccess, onClose]);
-
   // Заполняем поля данными продукта при загрузке
   useEffect(() => {
     if (product) {
@@ -225,6 +218,12 @@ export const UpdateProduct = ({
     updateProductMutation.mutate({
       idProduct: productId,
       productData: updateData,
+    },
+    {
+      onSuccess: () => {
+        onClose();
+        updateProductMutation.reset();
+      },
     });
   };
   return (

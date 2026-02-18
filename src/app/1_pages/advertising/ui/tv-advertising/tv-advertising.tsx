@@ -246,7 +246,6 @@ export const TvAdvertising = () => {
       toast.success("Реклама успешно создана");
     } catch (error) {
       console.error("Ошибка создания рекламы:", error);
-      toast.error("Ошибка при создании рекламы");
     } finally {
       setIsSubmitting(false);
     }
