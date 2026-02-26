@@ -213,6 +213,7 @@ export const UpdateProduct = ({
         .filter((id) => !isNaN(id)),
       variant: variant,
       image: selectedFile || undefined,
+      idStore: product.IdStore,
     };
 
     updateProductMutation.mutate({

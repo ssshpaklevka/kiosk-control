@@ -79,6 +79,7 @@ export const productsApi = {
       "ingredients",
       JSON.stringify(productData.ingredients || [])
     );
+    formData.append("idStore", JSON.stringify(productData.idStore));
 
     const response = await apiClient.patch(
       `product-main/${idProduct}`,
