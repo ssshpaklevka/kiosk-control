@@ -19,8 +19,6 @@ export const extrasApi = {
 
     if (extras.name) formData.append("name", extras.name);
     if (extras.description) formData.append("description", extras.description);
-    if (extras.price !== undefined)
-      formData.append("price", extras.price.toString());
     if (extras.type) formData.append("type", extras.type);
     if (extras.weight !== undefined)
       formData.append("weight", extras.weight.toString());

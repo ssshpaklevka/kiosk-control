@@ -20,12 +20,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { CameraOff, Eye, Pencil, Search, Trash2 } from "lucide-react";
+import { CameraOff, DollarSign, Eye, Pencil, Search, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Input } from "../../../../components/ui/input";
 import { useDeleteProduct, useGetProduct } from "../hooks/use-product";
 import { ProductDetailsModal } from "./product-details-modal";
 import { UpdateProduct } from "./update-product";
+import { UpdatePrice } from "./update-price";
 
 export const TableProducts = () => {
   const [selectedProductId, setSelectedProductId] = useState<number | null>(
@@ -37,6 +38,7 @@ export const TableProducts = () => {
     null
   );
   const [isUpdatingProduct, setIsUpdatingProduct] = useState<boolean>(false);
+  const [isUpdatingPrice, setIsUpdatingPrice] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState("");
   const { data: products, isLoading, error } = useGetProduct();
   const deleteProductMutation = useDeleteProduct();
@@ -49,6 +51,11 @@ export const TableProducts = () => {
   const handleViewProduct = (id: number) => {
     setSelectedProductId(id);
     setIsModalOpen(true);
+  };
+
+  const handleUpdatePrice = (id: number) => {
+    setSelectedProductId(id);
+    setIsUpdatingPrice(true);
   };
 
   const handleUpdateProduct = (id: number) => {
@@ -64,6 +71,11 @@ export const TableProducts = () => {
   const handleCloseModalUpdate = () => {
     setIsUpdatingProduct(false);
     setUpdatingProductId(null);
+  };
+
+  const handleCloseModalUpdatePrice = () => {
+    setIsUpdatingPrice(false);
+    setSelectedProductId(null);
   };
 
   const filteredProducts = products?.filter((product) =>
@@ -111,9 +123,9 @@ export const TableProducts = () => {
         </CardHeader>
         <CardContent className="flex-1 overflow-hidden">
           <div className="h-full overflow-auto">
-            <Table>
+            <Table className="text-center">
               <TableHeader>
-                <TableRow>
+                <TableRow className="*:text-center">
                   <TableHead>Изображение</TableHead>
                   <TableHead>Название</TableHead>
                   <TableHead>Калории</TableHead>
@@ -121,6 +133,7 @@ export const TableProducts = () => {
                   <TableHead>Жиры</TableHead>
                   <TableHead>Углеводы</TableHead>
                   <TableHead>Подробнее</TableHead>
+                  <TableHead>Цены</TableHead>
                   <TableHead>Удалить</TableHead>
                   <TableHead>Обновить</TableHead>
                 </TableRow>
@@ -153,7 +166,7 @@ export const TableProducts = () => {
                     </TableCell>
 
                     {/* Название продукта */}
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium max-w-50 truncate">
                       {product.name}
                     </TableCell>
 
@@ -170,7 +183,7 @@ export const TableProducts = () => {
                     <TableCell>{product.information.carbohydrates}г</TableCell>
 
                     {/* Подробнее */}
-                    <TableCell>
+                    <TableCell className="px-2 w-max">
                       <Button
                         variant="outline"
                         size="icon"
@@ -180,8 +193,19 @@ export const TableProducts = () => {
                       </Button>
                     </TableCell>
 
+                    {/* Цены */}
+                    <TableCell className="px-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handleUpdatePrice(product.id)}
+                      >
+                        <DollarSign className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+
                     {/* Действия */}
-                    <TableCell>
+                    <TableCell className="px-2">
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button
@@ -215,7 +239,7 @@ export const TableProducts = () => {
                         </AlertDialogContent>
                       </AlertDialog>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="px-2">
                       <Button
                         variant="outline"
                         size="icon"
@@ -237,6 +261,13 @@ export const TableProducts = () => {
         isOpen={isModalOpen}
         onClose={handleCloseModalInfo}
       />
+      
+      <UpdatePrice
+        productId={selectedProductId || 0}
+        isOpen={isUpdatingPrice}
+        onClose={handleCloseModalUpdatePrice}
+      />
+
       <UpdateProduct
         productId={updatingProductId || 0}
         isOpen={isUpdatingProduct}

@@ -24,8 +24,6 @@ export const typeApi = {
 
     if (type.name) formData.append("name", type.name);
     if (type.description) formData.append("description", type.description);
-    if (type.price !== undefined)
-      formData.append("price", type.price.toString());
     if (type.type) formData.append("type", type.type);
     if (type.weight !== undefined)
       formData.append("weight", type.weight.toString());
@@ -35,7 +33,7 @@ export const typeApi = {
       formData.append("image", type.image);
     }
 
-    const response = await apiClient.patch(`/product-type/${id}`, formData, {
+    const response = await apiClient.patch(`/product-type/update-type-product/${id}`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },

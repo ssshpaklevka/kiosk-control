@@ -30,6 +30,8 @@ import {
   useUpdateGroup,
 } from "../hooks/use-groups";
 import { CreateGroup, UpdateGroup } from "../types/group.dto";
+import { MultiSelect } from "../../../../components/ui/multiselect";
+import { useStores } from "../../advertising/hooks/use-stores";
 
 interface FileValidationError {
   type: "format" | "dimensions" | "size";
@@ -41,13 +43,15 @@ export const GroupsProduct = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [updatingGroupId, setUpdatingGroupId] = useState<number | null>(null);
   const [deletingGroupId, setDeletingGroupId] = useState<number | null>(null);
-  const [editingGroup, setEditingGroup] = useState({
+  const [editingGroup, setEditingGroup] = useState<UpdateGroup>({
     name: "",
     image: new File([], "image.png"),
+    store: [],
   });
-  const [newGroup, setNewGroup] = useState({
+  const [newGroup, setNewGroup] = useState<CreateGroup>({
     name: "",
     image: new File([], "image.png"),
+    store: [],
   });
 
   // Состояния для загрузки изображений
@@ -58,6 +62,7 @@ export const GroupsProduct = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { data: groups = [], isLoading, error } = useGetGroups();
+  const { data: stores } = useStores();
   const { mutate: createGroup } = useCreateGroup();
   const { mutate: deleteGroup } = useDeleteGroup();
   const { mutate: updateGroup } = useUpdateGroup();
@@ -149,9 +154,10 @@ export const GroupsProduct = () => {
       const newGroupData: CreateGroup = {
         name: newGroup.name,
         image: selectedFile,
+        store: newGroup.store,
       };
       createGroup(newGroupData);
-      setNewGroup({ name: "", image: new File([], "image.png") });
+      setNewGroup({ name: "", image: new File([], "image.png"), store: [] });
       setSelectedFile(null);
       setPreviewUrl(null);
       setIsValidFile(false);
@@ -168,6 +174,7 @@ export const GroupsProduct = () => {
   const handleUpdateGroup = (id: number) => {
     const groupData: UpdateGroup = {
       name: editingGroup.name,
+      store: editingGroup.store,
       image:
         editingGroup.image instanceof File && editingGroup.image.size > 0
           ? editingGroup.image
@@ -175,8 +182,19 @@ export const GroupsProduct = () => {
     };
     updateGroup({ id, group: groupData });
     setUpdatingGroupId(null);
-    setEditingGroup({ name: "", image: new File([], "image.png") });
+    setEditingGroup({ name: "", image: new File([], "image.png"), store: [] });
   };
+
+  const storageData =
+    stores && Array.isArray(stores)
+      ? stores.map((store) => ({
+        id: store.id,
+        name: store.name,
+        value: String(store.id),
+        label: store.name,
+      }))
+      : [];
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -280,6 +298,24 @@ export const GroupsProduct = () => {
                       : "Выбрать изображение"}
                   </Button>
 
+                  <div className="flex flex-col gap-2">
+                    <Label>Магазины для группы</Label>
+                    <MultiSelect
+                      maxCount={1}
+                      options={storageData}
+                      value={(newGroup.store || []).map(String)}
+                      onValueChange={(value) => {
+                        setNewGroup((prev) => {
+                          return {
+                            ...prev,
+                            store: value,
+                          };
+                        });
+                      }}
+                      placeholder="Выберите магазины"
+                    />
+                  </div>
+
                   {/* Информация о файле */}
                   {selectedFile && (
                     <div className="p-3 border rounded-md bg-muted/20">
@@ -354,7 +390,7 @@ export const GroupsProduct = () => {
                 variant="outline"
                 onClick={() => {
                   setIsCreating(false);
-                  setNewGroup({ name: "", image: new File([], "image.png") });
+                  setNewGroup({ name: "", image: new File([], "image.png"), store: [] });
                   setSelectedFile(null);
                   setPreviewUrl(null);
                   setIsValidFile(false);
@@ -425,16 +461,17 @@ export const GroupsProduct = () => {
                           setEditingGroup({
                             name: group.name,
                             image: new File([], "image.png"),
+                            store: group.store,
                           });
                         }
                       }}
                     >
-                      <DialogTrigger>
+                      <DialogTrigger asChild>
                         <Button variant="outline" size="sm">
                           <Edit2 className="w-4 h-4" />
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="flex flex-col gap-12">
+                      <DialogContent className="flex flex-col gap-6">
                         <DialogHeader>
                           <DialogTitle>
                             Обновить группу &quot;{group.name}&quot; ?
@@ -451,6 +488,23 @@ export const GroupsProduct = () => {
                               })
                             }
                             placeholder="Введите новое название группы"
+                          />
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <Label>Магазины для группы</Label>
+                          <MultiSelect
+                            maxCount={1}
+                            options={storageData}
+                            value={(editingGroup.store || []).map(String)}
+                            onValueChange={(value) => {
+                              setEditingGroup((prev) => {
+                                return {
+                                  ...prev,
+                                  store: value,
+                                };
+                              });
+                            }}
+                            placeholder="Выберите магазины"
                           />
                         </div>
                         <DialogFooter className="flex justify-start!">
@@ -477,7 +531,7 @@ export const GroupsProduct = () => {
                         setDeletingGroupId(open ? group.id : null)
                       }
                     >
-                      <DialogTrigger>
+                      <DialogTrigger asChild>
                         <Button variant="outline" size="sm">
                           <Trash2 className="w-4 h-4" />
                         </Button>

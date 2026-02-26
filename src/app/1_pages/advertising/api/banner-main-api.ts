@@ -8,7 +8,7 @@ import {
 export const bannerMainApi = {
   getBanners: async (): Promise<BannerMain[]> => {
     try {
-      const response = await apiClient.get("/banner-main");
+      const response = await apiClient.get("/banner-main/get-all-bunner-main");
       return Array.isArray(response.data)
         ? response.data
         : response.data?.data || response.data?.bannerMain || [];
@@ -19,7 +19,7 @@ export const bannerMainApi = {
   },
 
   getBannerById: async (id: number): Promise<BannerMain> => {
-    const response = await apiClient.get(`/banner-main/${id}`);
+    const response = await apiClient.get(`/banner-main/get-one-bunner/${id}`);
     return response.data;
   },
 

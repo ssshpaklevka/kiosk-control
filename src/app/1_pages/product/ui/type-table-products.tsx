@@ -52,7 +52,6 @@ interface EditingType {
   name: string;
   image?: File;
   description: string;
-  price: string;
   type: TYPE_PRODUCT_ENUM;
   weight: string;
   currentImage: string;
@@ -150,7 +149,6 @@ export const TypeTableProducts = () => {
       id: type.id,
       name: type.name,
       description: type.description || "",
-      price: type.price?.toString() || "",
       type: type.type || TYPE_PRODUCT_ENUM.TYPE,
       weight: type.weight?.toString() || "",
       currentImage: type.image || "",
@@ -166,7 +164,6 @@ export const TypeTableProducts = () => {
     const updateData: UpdateProductType = {
       name: editingType.name,
       description: editingType.description,
-      price: parseFloat(editingType.price),
       type: editingType.type,
       weight: parseFloat(editingType.weight),
     };
@@ -180,13 +177,13 @@ export const TypeTableProducts = () => {
       { id: editingType.id, type: updateData },
       {
         onSuccess: () => {
-          setEditingType(null);
           setPreviewUrl(null);
           setValidationError(null);
           setIsValidFile(false);
         },
       }
     );
+
   };
 
   return (
@@ -243,7 +240,7 @@ export const TypeTableProducts = () => {
                           <Pencil className="h-4 w-4" />
                         </Button>
                       </DialogTrigger>
-                      <DialogContent>
+                      <DialogContent aria-describedby={undefined}>
                         <DialogHeader>
                           <DialogTitle>
                             Обновить тип продукта{" "}
@@ -313,22 +310,6 @@ export const TypeTableProducts = () => {
                               />
                             </div>
                             <div className="flex flex-col gap-2">
-                              <Label>Цена</Label>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                value={editingType.price}
-                                onChange={(e) =>
-                                  setEditingType({
-                                    ...editingType,
-                                    price: e.target.value,
-                                  })
-                                }
-                                placeholder="Введите цену"
-                              />
-                            </div>
-                            <div className="flex flex-col gap-2">
                               <Label>Тип номенклатуры</Label>
                               <Select
                                 value={editingType.type}
@@ -385,9 +366,6 @@ export const TypeTableProducts = () => {
                               !editingType ||
                               !editingType.name.trim() ||
                               !editingType.description.trim() ||
-                              !editingType.price ||
-                              isNaN(parseFloat(editingType.price)) ||
-                              parseFloat(editingType.price) <= 0 ||
                               !editingType.weight ||
                               isNaN(parseFloat(editingType.weight)) ||
                               parseFloat(editingType.weight) <= 0 ||

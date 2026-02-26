@@ -8,7 +8,7 @@ import {
 export const bannerTvApi = {
   getBanners: async (): Promise<BannerTv[]> => {
     try {
-      const response = await apiClient.get("/banner-tv");
+      const response = await apiClient.get("/banner-tv/get-all-bunner-tv");
       return Array.isArray(response.data)
         ? response.data
         : response.data?.data || response.data?.bannerTv || [];
@@ -18,7 +18,7 @@ export const bannerTvApi = {
   },
 
   getBannerById: async (id: number): Promise<BannerTv> => {
-    const response = await apiClient.get(`/banner-tv/${id}`);
+    const response = await apiClient.get(`/banner-tv/get-one-bunner-tv/${id}`);
     return response.data;
   },
 

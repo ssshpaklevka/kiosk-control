@@ -44,7 +44,7 @@ export const productsApi = {
     formData.append("variant", productData.variant);
     formData.append("type", JSON.stringify(productData.type));
     formData.append("ingredients", JSON.stringify(productData.ingredients));
-    const response = await apiClient.post(`product-main`, formData, {
+    const response = await apiClient.post(`product-main/create-product-main`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -79,6 +79,7 @@ export const productsApi = {
       "ingredients",
       JSON.stringify(productData.ingredients || [])
     );
+    formData.append("idStore", JSON.stringify(productData.idStore));
 
     const response = await apiClient.patch(
       `product-main/${idProduct}`,
@@ -115,7 +116,6 @@ export const productsApi = {
 
       formData.append("name", productData.name);
       formData.append("description", productData.description);
-      formData.append("price", productData.price.toString());
       formData.append("type", productData.type);
       formData.append("weight", productData.weight.toString());
       formData.append("image", productData.image);

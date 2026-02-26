@@ -22,6 +22,7 @@ export interface CreateProduct {
 }
 
 export interface UpdateProduct {
+  idStore: number[];
   name: string;
   image?: File;
   description: string;
@@ -44,7 +45,6 @@ export interface UpdateProductSet {
   name: string;
   image: File;
   description: string;
-  price: number;
   weight: number;
   type: TYPE_PRODUCT_ENUM;
 }
@@ -66,10 +66,12 @@ export interface ProductOriginal {
   image: string;
   description: string;
   name: string;
+  idStore?: number[];
 }
 
 export interface ProductIngredient {
   id: number;
+  idProduct: number;
   name: string;
   image: string;
 }
@@ -80,6 +82,7 @@ export interface CreateProductIngredient {
 
 export interface ProductType {
   id: number;
+  idProduct: number;
   name: string;
   image: string;
 }
@@ -122,4 +125,5 @@ export interface Product {
     composition: string;
     description: string;
   };
+  IdStore: number[];
 }

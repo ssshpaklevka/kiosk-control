@@ -56,7 +56,6 @@ interface EditingExtra {
   name: string;
   image?: File;
   description: string;
-  price: string;
   type: TYPE_PRODUCT_ENUM;
   weight: string;
   currentImage: string;
@@ -154,7 +153,6 @@ export const ExtrasTableProducts = () => {
       id: extra.id,
       name: extra.name,
       description: extra.description || "",
-      price: extra.price?.toString() || "",
       type: extra.type || TYPE_PRODUCT_ENUM.TYPE,
       weight: extra.weight?.toString() || "",
       currentImage: extra.image || "",
@@ -170,7 +168,6 @@ export const ExtrasTableProducts = () => {
     const updateData: UpdateProductExtras = {
       name: editingExtra.name,
       description: editingExtra.description,
-      price: parseFloat(editingExtra.price),
       type: editingExtra.type,
       weight: parseFloat(editingExtra.weight),
     };
@@ -315,22 +312,6 @@ export const ExtrasTableProducts = () => {
                             />
                           </div>
                           <div className="flex flex-col gap-2">
-                            <Label>Цена</Label>
-                            <Input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              value={editingExtra.price}
-                              onChange={(e) =>
-                                setEditingExtra({
-                                  ...editingExtra,
-                                  price: e.target.value,
-                                })
-                              }
-                              placeholder="Введите цену"
-                            />
-                          </div>
-                          <div className="flex flex-col gap-2">
                             <Label>Тип номенклатуры</Label>
                             <Select
                               value={editingExtra.type}
@@ -387,9 +368,6 @@ export const ExtrasTableProducts = () => {
                             !editingExtra ||
                             !editingExtra.name.trim() ||
                             !editingExtra.description.trim() ||
-                            !editingExtra.price ||
-                            isNaN(parseFloat(editingExtra.price)) ||
-                            parseFloat(editingExtra.price) <= 0 ||
                             !editingExtra.weight ||
                             isNaN(parseFloat(editingExtra.weight)) ||
                             parseFloat(editingExtra.weight) <= 0 ||

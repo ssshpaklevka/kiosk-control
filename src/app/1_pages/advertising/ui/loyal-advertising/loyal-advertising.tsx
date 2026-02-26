@@ -41,7 +41,7 @@ export const LoyalAdvertising = () => {
       ? stores.map((store) => ({
           id: store.id,
           name: store.name,
-          value: store.id,
+          value: String(store.id),
           label: store.name,
         }))
       : [];
@@ -324,19 +324,18 @@ export const LoyalAdvertising = () => {
             <div className="flex flex-col gap-2">
               <p>
                 Магазины (где показывать рекламу){" "}
-                <span className="text-sm text-muted-foreground">
-                  (временно отключено)
-                </span>
               </p>
               <MultiSelect
-                maxCount={10}
+                maxCount={1}
                 options={storageData}
-                value={formData.store}
+                value={(formData.store || []).map(String)}
                 onValueChange={(value) => {
-                  setFormData((prev) => ({ ...prev, store: value }));
+                  setFormData((prev) => ({
+                    ...prev,
+                    store: value,
+                  }));
                 }}
-                placeholder="Поле временно отключено"
-                disabled={true} // Всегда отключено
+                placeholder="Выберите магазины"
               />
             </div>
 
