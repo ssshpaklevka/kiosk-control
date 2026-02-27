@@ -186,7 +186,7 @@ export const TableLoyalAdvertising = () => {
       } = {
         name: editingBanner.name,
         seconds: editingBanner.seconds,
-        is_active: editingBanner.is_active,
+        is_active: editingBanner.isActive,
       };
 
       // Если загружен новый файл, добавляем его
@@ -198,7 +198,7 @@ export const TableLoyalAdvertising = () => {
         name: updateData.name,
         seconds: Number(updateData.seconds),
         is_active: updateData.is_active,
-        // НЕ передаем store, если он не нужен - пусть остается undefined
+        store: editingBanner.store || [],
         ...(updateData.file && { file: updateData.file }),
       };
 
@@ -323,7 +323,7 @@ export const TableLoyalAdvertising = () => {
                       <TableCell>{banner.name}</TableCell>
                       <TableCell>{banner.seconds} секунд</TableCell>
                       <TableCell>
-                        {banner.is_active === true ? "Да" : "Нет"}
+                        {banner.isActive === true ? "Да" : "Нет"}
                       </TableCell>
                       <TableCell>
                         {banner.type === "video" ? "Видео" : "Изображение"}
@@ -391,14 +391,14 @@ export const TableLoyalAdvertising = () => {
                                     <Button
                                       type="button"
                                       variant={
-                                        editingBanner.is_active
+                                        editingBanner.isActive
                                           ? "default"
                                           : "outline"
                                       }
                                       onClick={() =>
                                         setEditingBanner({
                                           ...editingBanner,
-                                          is_active: true,
+                                          isActive: true,
                                         })
                                       }
                                     >
@@ -407,14 +407,14 @@ export const TableLoyalAdvertising = () => {
                                     <Button
                                       type="button"
                                       variant={
-                                        !editingBanner.is_active
+                                        !editingBanner.isActive
                                           ? "default"
                                           : "outline"
                                       }
                                       onClick={() =>
                                         setEditingBanner({
                                           ...editingBanner,
-                                          is_active: false,
+                                          isActive: false,
                                         })
                                       }
                                     >
