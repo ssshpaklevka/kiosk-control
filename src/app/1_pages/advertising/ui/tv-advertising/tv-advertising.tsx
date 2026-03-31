@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../../../components/ui/select";
-import { useCreateBannerTv } from "../../hooks/use-banner-tv";
+import { useCreateBannerTv, useGetCountTv } from "../../hooks/use-banner-tv";
 import { useStores } from "../../hooks/use-stores";
 import { CreateBannerTv } from "../../types/adevrtising";
 import { TableTvAdvertising } from "./table-tv-advertising";
@@ -25,6 +25,10 @@ interface FileValidationError {
 }
 
 export const TvAdvertising = () => {
+  type TvFormData = Omit<CreateBannerTv, "file" | "tv_number"> & {
+    tv_number: number | null;
+  };
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [validationError, setValidationError] =
     useState<FileValidationError | null>(null);
@@ -36,13 +40,15 @@ export const TvAdvertising = () => {
   const { data: stores } = useStores(); // Убрали isLoadingStores, так как не используем
 
   // Состояние формы
-  const [formData, setFormData] = useState<Omit<CreateBannerTv, "file">>({
+  const [formData, setFormData] = useState<TvFormData>({
     name: "",
     seconds: 5,
     store: [], // Можно оставить пустым массивом или убрать совсем
     is_active: true,
-    tv_number: 1, // По умолчанию ТВ 1
+    tv_number: null,
   });
+
+  const { data: countTv } = useGetCountTv(Number(formData?.store?.[0]));
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -50,11 +56,11 @@ export const TvAdvertising = () => {
   const storageData =
     stores && Array.isArray(stores)
       ? stores.map((store) => ({
-          id: store.id,
-          name: store.name,
-          value: String(store.id),
-          label: store.name,
-        }))
+        id: store.id,
+        name: store.name,
+        value: String(store.id),
+        label: store.name,
+      }))
       : [];
 
   const validateFileFormat = (file: File): FileValidationError | null => {
@@ -72,15 +78,15 @@ export const TvAdvertising = () => {
   // Проверка размеров файла в зависимости от выбранного ТВ
   const validateFileDimensions = async (
     file: File,
-    tvNumber: number
+    tvNumber: number | null
   ): Promise<FileValidationError | null> => {
     let requiredWidth: number;
     const requiredHeight: number = 1080;
 
-    if (tvNumber === 1) {
-      requiredWidth = 1920;
-    } else if (tvNumber === 2) {
+    if (tvNumber === 2) {
       requiredWidth = 1092;
+    } else if (tvNumber) {
+      requiredWidth = 1920;
     } else {
       return { type: "dimensions", message: "Выберите номер ТВ" };
     }
@@ -126,7 +132,7 @@ export const TvAdvertising = () => {
   };
 
   // Общая функция запуска всех валидаций
-  const runAllValidations = async (file: File, tvNumber: number) => {
+  const runAllValidations = async (file: File, tvNumber: number | null) => {
     setValidationError(null);
     setIsValidFile(false);
 
@@ -198,6 +204,11 @@ export const TvAdvertising = () => {
   };
 
   const handleSubmit = async () => {
+    if (formData.tv_number === null) {
+      toast.error("Необходимо выбрать номер ТВ");
+      return;
+    }
+
     // Финальная проверка перед отправкой
     if (!selectedFile) {
       toast.error("Необходимо загрузить файл");
@@ -226,6 +237,7 @@ export const TvAdvertising = () => {
     try {
       const bannerData: CreateBannerTv = {
         ...formData,
+        tv_number: formData.tv_number,
         file: selectedFile!,
       };
 
@@ -251,6 +263,8 @@ export const TvAdvertising = () => {
     }
   };
 
+  console.log(formData);
+
   return (
     <>
       <div className="flex flex-row gap-8">
@@ -272,29 +286,80 @@ export const TvAdvertising = () => {
           </Card>
         </div>
         <div className="flex flex-col gap-4 min-w-80">
-          <div>
-            <p className="text-lg font-medium mb-2">Изменить рекламу на ТВ</p>
-            <p className="text-sm text-muted-foreground mb-4">
-              Требования: WebP или WebM, размер{" "}
-              {formData.tv_number === 1 ? (
-                <span className="text-red-500 text-[16px] font-semibold">
-                  1920x1080px для ТВ 1
-                </span>
-              ) : formData.tv_number === 2 ? (
-                <span className="text-red-500 text-[16px] font-semibold">
-                  1092x1080px для ТВ 2
-                </span>
-              ) : (
-                "выберите ТВ"
-              )}
-              , 72 DPI
+          <p className="text-lg font-medium">Изменить рекламу на ТВ</p>
+          <div className="flex flex-col gap-2">
+            <p>
+              Магазин
             </p>
+            <MultiSelect
+              singleSelect
+              maxCount={1}
+              showSelectAll={false}
+              options={storageData}
+              value={(formData.store || []).map(String)}
+              onValueChange={(value) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  store: value,
+                }));
+                setFormData((prev) => ({
+                  ...prev,
+                  tv_number: null,
+                }));
+              }}
+              placeholder="Выберите магазин"
+            />
           </div>
+
+          {countTv &&
+            <div className="flex flex-col gap-2">
+              <p>Номер ТВ</p>
+              <Select
+                value={formData.tv_number ? formData.tv_number.toString() : ""}
+                onValueChange={(value) => {
+                  const tvNumber = parseInt(value, 10);
+                  setFormData((prev) => ({ ...prev, tv_number: tvNumber }));
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Выберите номер ТВ" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {Array.from({ length: countTv }, (_, index) => (
+                      <SelectItem
+                        key={index + 1}
+                        value={(index + 1).toString()}
+                      >
+                        ТВ {index + 1}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+          }
+          <p className="text-sm text-muted-foreground">
+            Требования: WebP или WebM, размер{" "}
+            {formData.tv_number && formData.tv_number !== 2 ? (
+              <span className="text-red-500 text-[16px] font-semibold">
+                1920x1080px для ТВ {formData.tv_number}
+              </span>
+            ) : formData.tv_number ? (
+              <span className="text-red-500 text-[16px] font-semibold">
+                1092x1080px для ТВ 2
+              </span>
+            ) : (
+              "выберите ТВ"
+            )}
+            , 72 DPI
+          </p>
 
           <div className="space-y-3">
             <Button
               onClick={handleUploadClick}
               variant="outline"
+              disabled={!formData.tv_number}
               className="w-full"
             >
               <Upload className="w-4 h-4 mr-2" />
@@ -360,51 +425,6 @@ export const TvAdvertising = () => {
                 }
                 onChange={(e) => handleSecondsChange(e.target.value)}
                 placeholder="Время показа в секундах"
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <p>Номер ТВ</p>
-              <Select
-                value={formData.tv_number.toString()}
-                onValueChange={(value) => {
-                  const tvNumber = parseInt(value, 10);
-                  setFormData((prev) => ({ ...prev, tv_number: tvNumber }));
-                }}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Выберите номер ТВ" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {Array.from({ length: 2 }, (_, index) => (
-                      <SelectItem
-                        key={index + 1}
-                        value={(index + 1).toString()}
-                      >
-                        ТВ {index + 1}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <p>
-                Магазины (где показывать рекламу){" "}
-              </p>
-              <MultiSelect
-                maxCount={1}
-                options={storageData}
-                value={(formData.store || []).map(String)}
-                onValueChange={(value) => {
-                  setFormData((prev) => ({
-                    ...prev,
-                    store: value,
-                  }));
-                }}
-                placeholder="Выберите магазины"
               />
             </div>
 

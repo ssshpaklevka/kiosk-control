@@ -5,6 +5,15 @@ import {
   UpdateBannerTvDto,
 } from "../types/adevrtising";
 
+export const getCountTv = async (idStore: number): Promise<number> => {
+  try {
+    const response = await apiClient.get(`/banner-tv/get-count-tv/${idStore}`);
+    return response.data.count;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const bannerTvApi = {
   getBanners: async (): Promise<BannerTv[]> => {
     try {

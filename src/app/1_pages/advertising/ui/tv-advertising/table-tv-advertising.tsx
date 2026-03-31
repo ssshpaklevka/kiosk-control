@@ -6,7 +6,6 @@ import {
   CameraOff,
   CheckCircle,
   Pencil,
-  Store,
   Upload,
 } from "lucide-react";
 import Image from "next/image";
@@ -44,7 +43,6 @@ import {
 } from "../../hooks/use-banner-tv";
 import { useStores } from "../../hooks/use-stores";
 import { BannerTv, UpdateBannerTvDto } from "../../types/adevrtising";
-import { Separator } from "../../../../../components/ui/separator";
 
 interface FileValidationError {
   type: "format" | "dimensions" | "dpi" | "size";
@@ -64,7 +62,6 @@ export const TableTvAdvertising = () => {
   const [editingBanner, setEditingBanner] = useState<EditingBannerTv | null>(
     null
   );
-  const [dialogBannerStore, setDialogBannerStore] = useState<number | null>(null);
   const [updatedBannerIds, setUpdatedBannerIds] = useState<Set<string>>(
     new Set()
   );
@@ -79,6 +76,7 @@ export const TableTvAdvertising = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dialogBannerId, setDialogBannerId] = useState<number | null>(null);
+  const [selectedStore, setSelectedStore] = useState<string[]>([]);
 
   const validateFileFormat = (file: File): FileValidationError | null => {
     const allowedTypes = ["image/webp", "video/webm"];
@@ -99,12 +97,10 @@ export const TableTvAdvertising = () => {
     let requiredWidth: number;
     const requiredHeight: number = 1080;
 
-    if (tvNumber === 1) {
-      // ТВ 1
-      requiredWidth = 1920;
-    } else if (tvNumber === 2) {
-      // ТВ 2
+    if (tvNumber === 2) {
       requiredWidth = 1092;
+    } else if (tvNumber) {
+      requiredWidth = 1920;
     } else {
       return { type: "dimensions", message: "Неверный номер ТВ" };
     }
@@ -246,7 +242,7 @@ export const TableTvAdvertising = () => {
         seconds: editingBanner.seconds,
         is_active: editingBanner.is_active,
         tv_number: editingBanner.tvNumber,
-        store: editingBanner.store,
+        store: editingBanner.store.map(String),
       };
 
       // Если загружен новый файл, добавляем его
@@ -314,11 +310,6 @@ export const TableTvAdvertising = () => {
     setIsDialogOpen(true);
   };
 
-  const handleShowStore = (banner: BannerTv) => {
-    setDialogBannerStore(Number(banner.id));
-    setIsDialogOpen(true);
-  };
-
   const handleSecondsChange = (value: string) => {
     const cleanValue = value.replace(/^0+/, "") || "0";
     const numericValue = parseInt(cleanValue, 10);
@@ -352,14 +343,27 @@ export const TableTvAdvertising = () => {
       }))
       : [];
 
+
   return (
     <div className="h-screen flex flex-col">
       <Card className="flex flex-col mb-4">
-        <CardHeader>
+        <CardHeader className="flex flex-col gap-4">
           <CardTitle>Список баннеров</CardTitle>
+          <MultiSelect
+            singleSelect
+            showSelectAll={false}
+            maxCount={1}
+            className="w-max"
+            options={storageData}
+            value={selectedStore}
+            onValueChange={(value) => {
+              setSelectedStore(value);
+            }}
+            placeholder="Выберите магазин"
+          />
         </CardHeader>
         <CardContent>
-          {banners && banners.length > 0 ? (
+          {selectedStore.length > 0 && banners && banners.length > 0 ? (
             <Table className="text-center">
               <TableHeader>
                 <TableRow>
@@ -369,13 +373,12 @@ export const TableTvAdvertising = () => {
                   <TableHead className="text-center">Активен</TableHead>
                   <TableHead className="text-center">Тип</TableHead>
                   <TableHead className="text-center">Номер ТВ</TableHead>
-                  <TableHead className="text-center">Магазины</TableHead>
                   <TableHead className="text-center"></TableHead>
                   <TableHead className="text-center"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {banners?.map((banner) => (
+                {banners?.filter((banner) => banner.store?.includes(Number(selectedStore[0]))).map((banner) => (
                   <TableRow key={banner.id}>
                     <TableCell>
                       <div className="flex justify-center">
@@ -420,44 +423,7 @@ export const TableTvAdvertising = () => {
                     <TableCell>
                       {banner.type === "video" ? "Видео" : "Изображение"}
                     </TableCell>
-                    <TableCell>{banner.tvNumber}</TableCell>
-                    <TableCell className="text-center">
-                      <Dialog
-                        open={
-                          isDialogOpen && dialogBannerStore === Number(banner.id)
-                        }
-                        onOpenChange={(open) => {
-                          if (!open) {
-                            setIsDialogOpen(false);
-                            setDialogBannerStore(null);
-                          }
-                        }}
-                      >
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            onClick={() => handleShowStore(banner)}
-                          >
-                            <Store className="w-4 h-4" /> {banner.store?.length}
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
-                          <DialogHeader className="overflow-hidden">
-                            <DialogTitle className="truncate whitespace-pre-line">
-                              Магазины для баннера &quot;{banner.name}&quot;
-                            </DialogTitle>
-                          </DialogHeader>
-                          <div className="flex flex-col gap-2">
-                            {banner.store && banner.store?.map((store, index) => (
-                              <Fragment key={store}>
-                                <Separator />
-                                <span>{index + 1}. {stores?.find((s) => s.id === Number(store))?.name}</span>
-                              </Fragment>
-                            ))}
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    </TableCell>
+                    <TableCell>{banner.tvNumber}</TableCell>       
                     <TableCell className="w-px whitespace-nowrap px-2">
                       <Dialog
                         open={
@@ -516,26 +482,6 @@ export const TableTvAdvertising = () => {
                                 />
                               </div>
                               <div className="flex flex-col gap-2">
-                                <p>
-                                  Магазины (где показывать рекламу){" "}
-                                </p>
-                                <MultiSelect
-                                  maxCount={1}
-                                  options={storageData}
-                                  value={(editingBanner.store || []).map(String)}
-                                  onValueChange={(value) => {
-                                    setEditingBanner((prev) => {
-                                      if (!prev) return null;
-                                      return {
-                                        ...prev,
-                                        store: value,
-                                      }
-                                    });
-                                  }}
-                                  placeholder="Выберите магазины"
-                                />
-                              </div>
-                              <div className="flex flex-col gap-2">
                                 <Label>Активен ли баннер?</Label>
                                 <div className="flex flex-row gap-2">
                                   <Button
@@ -575,7 +521,7 @@ export const TableTvAdvertising = () => {
                               <div className="flex flex-col gap-2">
                                 <Label>Новое изображение</Label>
                                 <p className="text-xs text-muted-foreground">
-                                  Требуется: {editingBanner.tvNumber === 1 ? "1920x1080" : "1092x1080"} px
+                                  Требуется: {editingBanner.tvNumber === 2 ? "1092x1080" : "1920x1080"} px
                                 </p>
                                 <Button
                                   onClick={handleUploadClick}
@@ -697,8 +643,8 @@ export const TableTvAdvertising = () => {
               </TableBody>
             </Table>
           ) : (
-            <div className="flex flex-col gap-2">
-              <p>Нет баннеров</p>
+            <div className="flex flex-col">
+              <p className="text-center">Нет баннеров</p>
             </div>
           )}
         </CardContent>

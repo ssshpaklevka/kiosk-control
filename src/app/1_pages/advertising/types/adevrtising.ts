@@ -47,7 +47,7 @@ export interface BannerTv {
   id?: string;
   name: string;
   seconds: number;
-  store: string[];
+  store: number[];
   isActive: boolean;
   type: string;
   url: string;

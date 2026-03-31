@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { bannerTvApi } from "../api/banner-tv-api";
+import { bannerTvApi, getCountTv } from "../api/banner-tv-api";
 import {
   BannerTv,
   CreateBannerTv,
@@ -14,6 +14,16 @@ interface AxiosError extends Error {
     };
   };
 }
+
+export const useGetCountTv = (idStore: number) => {
+  return useQuery<number, Error>({
+    queryKey: ["count-tv", idStore],
+    queryFn: () => getCountTv(idStore),
+    enabled: Number.isFinite(idStore),
+    staleTime: 0,
+    gcTime: 0,
+  });
+};
 
 export const useGetBannersTv = () => {
   return useQuery<BannerTv[], Error>({
