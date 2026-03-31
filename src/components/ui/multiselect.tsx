@@ -42,7 +42,7 @@ export interface MultiSelectOption {
 }
 interface MultiSelectProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof multiSelectVariants> {
+  VariantProps<typeof multiSelectVariants> {
   value?: string[];
   options: MultiSelectOption[];
   defaultValue?: string[];
@@ -58,6 +58,7 @@ interface MultiSelectProps
   externalLabels?: { value: string; label: string }[];
   wrapDefaultInArray?: boolean;
   singleSelect?: boolean;
+  showSelectAll?: boolean;
 }
 
 export const MultiSelect = React.forwardRef<
@@ -81,6 +82,7 @@ export const MultiSelect = React.forwardRef<
       side,
       externalLabels,
       singleSelect = false,
+      showSelectAll = true,
       ...props
     },
     ref,
@@ -174,21 +176,26 @@ export const MultiSelect = React.forwardRef<
                       val;
 
                     return (
-                      <Badge
-                        key={value}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleOption(value);
-                        }}
-                        className={cn(multiSelectVariants({ variant }))}
-                        style={{ animationDuration: `${animation}s` }}
-                      >
-                        {IconComponent && (
-                          <IconComponent className="h-4 w-4 mr-2" />
+                      <React.Fragment key={value}>
+                        {!singleSelect ? (
+                          <Badge
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleOption(value);
+                            }}
+                            className={cn(multiSelectVariants({ variant }))}
+                            style={{ animationDuration: `${animation}s` }}
+                          >
+                            {IconComponent && (
+                              <IconComponent className="h-4 w-4 mr-2" />
+                            )}
+                            {getLabel(value)}
+                            <XCircle className="ml-2 h-4 w-4 cursor-pointer" />
+                          </Badge>
+                        ) : (
+                          <span className="text-sm text-foreground mx-3">{getLabel(value)}</span>
                         )}
-                        {getLabel(value)}
-                        <XCircle className="ml-2 h-4 w-4 cursor-pointer" />
-                      </Badge>
+                      </React.Fragment>
                     );
                   })}
 
@@ -260,7 +267,7 @@ export const MultiSelect = React.forwardRef<
                 <>
                   <CommandEmpty>Ничего не найдено</CommandEmpty>
                   <CommandGroup>
-                    {options && options.length > 0 && (
+                    {showSelectAll && options && options.length > 0 && (
                       <CommandItem
                         onSelect={toggleAll}
                         className="cursor-pointer"
