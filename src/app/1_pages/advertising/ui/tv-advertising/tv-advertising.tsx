@@ -85,17 +85,26 @@ export const TvAdvertising = () => {
 
     if (tvNumber === 2) {
       requiredWidth = 1092;
-    } else if (tvNumber) {
-      requiredWidth = 1920;
-    } else {
+    } else if (!tvNumber) {
       return { type: "dimensions", message: "Выберите номер ТВ" };
     }
 
     const checkDimensions = (w: number, h: number) => {
-      if (w !== requiredWidth || h !== requiredHeight) {
+      if (tvNumber === 2) {
+        if (w !== requiredWidth || h !== requiredHeight) {
+          return {
+            type: "dimensions" as const,
+            message: `Размер ${w}x${h}px не подходит. Требуется: ${requiredWidth}x${requiredHeight}px для ТВ ${tvNumber}`,
+          };
+        }
+        return null;
+      }
+      const isLandscape = w === 1920 && h === 1080;
+      const isPortrait = w === 1080 && h === 1920;
+      if (!isLandscape && !isPortrait) {
         return {
           type: "dimensions" as const,
-          message: `Размер ${w}x${h}px не подходит. Требуется: ${requiredWidth}x${requiredHeight}px для ТВ ${tvNumber}`,
+          message: `Размер ${w}x${h}px не подходит. Требуется: 1920x1080 или 1080x1920px для ТВ ${tvNumber}`,
         };
       }
       return null;
@@ -343,7 +352,7 @@ export const TvAdvertising = () => {
             Требования: WebP или WebM, размер{" "}
             {formData.tv_number && formData.tv_number !== 2 ? (
               <span className="text-red-500 text-[16px] font-semibold">
-                1920x1080px для ТВ {formData.tv_number}
+                1920x1080 или 1080x1920px для ТВ {formData.tv_number}
               </span>
             ) : formData.tv_number ? (
               <span className="text-red-500 text-[16px] font-semibold">
