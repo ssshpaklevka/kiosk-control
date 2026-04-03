@@ -311,37 +311,41 @@ export const TvAdvertising = () => {
             />
           </div>
 
-          {countTv && countTv > 0 ? (
-            <div className="flex flex-col gap-2">
-              <p>Номер ТВ</p>
-              <Select
-                value={formData.tv_number ? formData.tv_number.toString() : ""}
-                onValueChange={(value) => {
-                  const tvNumber = parseInt(value, 10);
-                  setFormData((prev) => ({ ...prev, tv_number: tvNumber }));
-                }}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Выберите номер ТВ" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {Array.from({ length: countTv }, (_, index) => (
-                      <SelectItem
-                        key={index + 1}
-                        value={(index + 1).toString()}
-                      >
-                        ТВ {index + 1}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Нет доступных ТВ
-            </p>
+          {formData.store?.length > 0 && (
+            <>
+              {countTv && countTv > 0 ? (
+                <div className="flex flex-col gap-2">
+                  <p>Номер ТВ</p>
+                  <Select
+                    value={formData.tv_number ? formData.tv_number.toString() : ""}
+                    onValueChange={(value) => {
+                      const tvNumber = parseInt(value, 10);
+                      setFormData((prev) => ({ ...prev, tv_number: tvNumber }));
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Выберите номер ТВ" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {Array.from({ length: countTv }, (_, index) => (
+                          <SelectItem
+                            key={index + 1}
+                            value={(index + 1).toString()}
+                          >
+                            ТВ {index + 1}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Нет доступных ТВ
+                </p>
+              )}
+            </>
           )}
           <p className="text-sm text-muted-foreground">
             Требования: WebP или WebM, размер{" "}
@@ -363,7 +367,7 @@ export const TvAdvertising = () => {
             <Button
               onClick={handleUploadClick}
               variant="outline"
-              disabled={!formData.tv_number}
+              disabled={!formData.tv_number || !formData.store.length}
               className="w-full"
             >
               <Upload className="w-4 h-4 mr-2" />
