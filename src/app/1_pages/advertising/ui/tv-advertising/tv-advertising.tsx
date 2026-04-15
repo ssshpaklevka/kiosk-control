@@ -51,6 +51,14 @@ export const TvAdvertising = () => {
   const { data: countTv } = useGetCountTv(Number(formData?.store?.[0]));
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const tvLabels: Record<number, string> = {
+    1: "С ножа",
+    2: "С ножа заказ",
+    3: "Не подключен",
+    4: "Зона касс",
+    5: "Зона заморозки",
+    6: "Зона посадки",
+  };
 
   // Преобразуем данные магазинов для MultiSelect
   const storageData =
@@ -329,11 +337,9 @@ export const TvAdvertising = () => {
                     <SelectContent>
                       <SelectGroup>
                         {Array.from({ length: countTv }, (_, index) => (
-                          <SelectItem
-                            key={index + 1}
-                            value={(index + 1).toString()}
-                          >
+                          <SelectItem key={index + 1} value={(index + 1).toString()}>
                             ТВ {index + 1}
+                            {tvLabels[index + 1] ? ` (${tvLabels[index + 1]})` : ""}
                           </SelectItem>
                         ))}
                       </SelectGroup>
